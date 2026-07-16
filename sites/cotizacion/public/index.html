@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cotización — GLG Royal Enfield</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=14">
+  <style>
+    /* Fuente limpia (evita el rendering feo del rojo en Arial/Windows) */
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    /* ---- Aviso de sesión ---- */
+    .s1-notice { position: fixed; inset: 0; background: #17181c; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .s1-notice-card { background: #fff; border-radius: 16px; padding: 40px 34px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,.35); text-align: center; }
+    .s1-notice-logo { font-size: 22px; font-weight: 800; color: #e30613; margin-bottom: 18px; }
+    .s1-notice-card h2 { margin: 0 0 8px; font-size: 22px; color: #1a1a1a; }
+    .s1-notice-card p { margin: 0 0 22px; font-size: 14.5px; color: #6b7280; line-height: 1.5; }
+    .s1-notice-btn { display: inline-block; width: 100%; background: #e30613; color: #fff; border: none; border-radius: 10px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: none; box-sizing: border-box; }
+    .s1-notice-btn:hover { opacity: .92; }
+
+    /* ---- Userbar ---- */
+    .s1-userbar { display: flex; align-items: center; gap: 14px; color: #fff; font-size: 14px; }
+    .s1-ghost { background: none; border: 1px solid #3a3b40; color: #d5d5d5; border-radius: 18px; padding: 6px 14px; font-size: 13px; cursor: pointer; font-family: inherit; }
+    .s1-ghost:hover { color: #fff; border-color: #6a6b70; }
+
+    /* ---- Menú Crear / Editar ---- */
+    .s1-wrap { max-width: 1040px; margin: 0 auto; padding: 40px 24px; }
+    .s1-pagehead { margin-bottom: 26px; }
+    .s1-eyebrow { font-size: 13px; font-weight: 700; color: #8a9099; }
+    .s1-back { background: none; border: none; color: #6b7280; font-size: 14px; font-weight: 500; cursor: pointer; padding: 2px 0 16px; font-family: inherit; }
+    .s1-back:hover { color: #17181c; }
+    .s1-pagehead h1 { font-size: 30px; font-weight: 800; color: #17181c; margin: 8px 0 6px; letter-spacing: -.4px; }
+    .s1-pagehead p { color: #6b7280; font-size: 15px; margin: 0; }
+    .s1-choose { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 640px) { .s1-choose { grid-template-columns: 1fr; } }
+    .s1-choose-card { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; text-align: left; background: #fff; border: 1px solid #e6e7ea; border-radius: 14px; padding: 30px 28px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.04); transition: border-color .15s, box-shadow .15s, transform .08s; font-family: inherit; }
+    .s1-choose-card:hover { border-color: #e30613; box-shadow: 0 16px 40px rgba(0,0,0,.08); transform: translateY(-2px); }
+    .s1-choose-ic { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: #fdeaec; color: #e30613; font-size: 24px; font-weight: 700; }
+    .s1-choose-card h3 { font-size: 20px; font-weight: 800; color: #17181c; margin: 0; }
+    .s1-choose-card p { color: #6b7280; font-size: 13.5px; margin: 0; line-height: 1.5; }
+    .s1-choose-go { margin-top: 4px; color: #17181c; font-size: 13px; font-weight: 700; }
+
+    /* ---- Formulario ---- */
+    .s1-form { max-width: 1040px; margin: 24px auto 0; padding: 0 24px; }
+    .s1-card { background: #fff; border: 1px solid #e6e7ea; border-radius: 12px; padding: 22px 22px 20px; margin-bottom: 16px; }
+    .s1-card-title { font-size: 17px; font-weight: 800; letter-spacing: -.2px; color: #17181c; margin: 0 0 16px; }
+    .s1-dealtitle { font-size: 22px; font-weight: 800; letter-spacing: -.3px; color: #17181c; margin: 4px 0 18px; }
+    .s1-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 620px) { .s1-grid { grid-template-columns: 1fr; } }
+    .s1-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    @media (max-width: 620px) { .s1-grid3 { grid-template-columns: 1fr; } }
+    .s1-full { grid-column: 1 / -1; }
+    .s1-field { margin-bottom: 16px; }
+    .s1-field:last-child { margin-bottom: 0; }
+    .s1-lbl { display: block; font-size: 13px; font-weight: 600; color: #6b7280; margin-bottom: 7px; }
+    .s1-inp { width: 100%; border: 1px solid #dcdfe4; border-radius: 8px; padding: 12px 14px; font-size: 15px; font-family: inherit; outline: none; background: #fff; }
+    .s1-inp:focus { border-color: #17181c; }
+    select.s1-inp { appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 38px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2371766f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 13px center; }
+    .s1-contact { position: relative; display: flex; gap: 10px; align-items: center; }
+    .s1-contact .s1-inp { flex: 1; }
+    .s1-cur { color: #6b7280; font-size: 15px; font-weight: 600; padding-left: 2px; }
+    .s1-inpgroup { display: flex; align-items: stretch; border: 1px solid #dcdfe4; border-radius: 8px; overflow: hidden; background: #fff; }
+    .s1-inpgroup:focus-within { border-color: #17181c; }
+    .s1-prefix { display: flex; align-items: center; gap: 4px; padding: 0 11px; background: #f6f7f9; border-right: 1px solid #dcdfe4; color: #6b7280; font-size: 14px; font-weight: 600; white-space: nowrap; }
+    select.s1-prefix-sel { border: none; outline: none; background: #f6f7f9; border-right: 1px solid #dcdfe4; color: #374151; font-size: 14px; font-weight: 600; font-family: inherit; padding: 0 24px 0 10px; cursor: pointer; appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 7px center; }
+    .s1-inpgroup .s1-inp { border: none; border-radius: 0; }
+    #cTel { }
+    input[readonly] { cursor: default; }
+    .s1-toggle { display: inline-flex; border: 1px solid #dcdfe4; border-radius: 8px; overflow: hidden; flex: none; }
+    .s1-tg { border: none; background: #fff; color: #6b7280; font-size: 15px; font-weight: 600; width: 46px; cursor: pointer; font-family: inherit; }
+    .s1-tg + .s1-tg { border-left: 1px solid #dcdfe4; }
+    .s1-tg.active { background: #17181c; color: #fff; }
+    /* ---- Check de retoma ---- */
+    .s1-check { display: flex; align-items: center; gap: 11px; cursor: pointer; user-select: none; padding: 2px 0; }
+    .s1-check input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .s1-check-box { width: 22px; height: 22px; flex: none; border: 2px solid #cbd0d6; border-radius: 6px; background: #fff; position: relative; transition: all .15s; }
+    .s1-check input:checked + .s1-check-box { background: #e30613; border-color: #e30613; }
+    .s1-check input:checked + .s1-check-box::after { content: ''; position: absolute; left: 6px; top: 2px; width: 6px; height: 11px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+    .s1-check input:focus-visible + .s1-check-box { box-shadow: 0 0 0 3px rgba(227,6,19,.2); }
+    .s1-check-txt { font-size: 14.5px; font-weight: 600; color: #374151; }
+    .s1-card-sub { font-size: 13px; font-weight: 600; color: #9aa0a6; letter-spacing: 0; }
+    .s1-suffix { display: flex; align-items: center; padding: 0 13px; background: #f6f7f9; border-left: 1px solid #dcdfe4; color: #6b7280; font-size: 14px; font-weight: 600; }
+    .s1-btn-inline { background: #17181c; color: #fff; border: none; border-radius: 8px; padding: 12px 16px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .s1-status { font-size: 13px; margin-top: 6px; min-height: 16px; color: #6b7280; }
+    .s1-product { position: relative; }
+    .s1-presults { position: absolute; z-index: 5; left: 0; right: 0; top: 100%; background: #fff; border: 1px solid #dcdfe4; border-radius: 8px; margin-top: 4px; max-height: 240px; overflow-y: auto; box-shadow: 0 8px 24px rgba(0,0,0,.1); display: none; }
+    .s1-presults.open { display: block; }
+    .s1-presult { padding: 11px 14px; cursor: pointer; font-size: 14px; border-bottom: 1px solid #f0f0f0; }
+    .s1-presult:hover { background: #f6f7f9; }
+    .s1-presult small { color: #8a8a8a; display: block; }
+    .s1-presult-new { color: #e30613; font-weight: 600; border-top: 1px solid #eee; }
+    .s1-presult-new small { color: #b0b0b0; font-weight: 400; }
+    .s1-tabs { max-width: 1040px; margin: 22px auto 0; padding: 0 24px; }
+
+    /* ---- Resultados de búsqueda (editar) ---- */
+    .glg-results { display: flex; flex-direction: column; gap: 9px; margin-top: 14px; }
+    .glg-res { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; text-align: left; background: #fff; border: 1px solid #e6e7ea; border-radius: 10px; padding: 13px 15px; cursor: pointer; font-family: inherit; transition: border-color .15s, background .15s; }
+    .glg-res:hover { border-color: #e30613; background: #fafafa; }
+    .glg-res-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .glg-res-title { font-weight: 700; font-size: 15px; color: #17181c; }
+    .glg-res-creator { font-size: 12.5px; color: #3a3b40; font-weight: 500; }
+    .glg-res-meta { font-size: 12.5px; color: #6b7280; }
+    .glg-res { padding: 14px 16px; align-items: flex-start; }
+    .glg-res-go { padding-top: 2px; }
+    .glg-res-go { flex: none; color: #17181c; font-size: 13px; font-weight: 700; }
+
+    /* Popup de éxito */
+    .s1-modal { position: fixed; inset: 0; z-index: 100; background: rgba(23,24,28,.55); display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .s1-modal-card { background: #fff; border-radius: 16px; padding: 36px 32px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 24px 70px rgba(0,0,0,.35); }
+    .s1-modal-ic { width: 62px; height: 62px; margin: 0 auto 18px; border-radius: 50%; background: #e8f7ee; color: #1e9e57; display: grid; place-items: center; font-size: 32px; font-weight: 700; }
+    .s1-modal-card h3 { margin: 0 0 6px; font-size: 21px; color: #17181c; }
+    .s1-modal-card p { margin: 0 0 20px; font-size: 14px; color: #6b7280; }
+    .s1-modal-actions { display: flex; flex-direction: column; gap: 10px; }
+    .s1-modal-btn { display: block; width: 100%; box-sizing: border-box; text-align: center; text-decoration: none; background: #e30613; color: #fff; border: none; border-radius: 10px; padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .s1-modal-btn:hover { opacity: .92; }
+    .s1-modal-wa { background: #25D366; }
+    .s1-modal-mail { background: #17181c; }
+    .s1-modal-open { background: #e30613; }
+    .s1-modal-close { background: #fff; color: #6b7280; border: 1px solid #dcdfe4; }
+    .s1-modal-close:hover { opacity: 1; color: #17181c; border-color: #17181c; }
+  </style>
+</head>
+<body>
+  <!-- ==================== AVISO / SESIÓN ==================== -->
+  <div class="s1-notice" id="noticeView" style="display:none;">
+    <div class="s1-notice-card">
+      <div class="s1-notice-logo">GLG · Royal Enfield</div>
+      <h2 id="noticeTitle">Sesión requerida</h2>
+      <p id="noticeMsg">Necesitás una sesión activa de Prolibu para usar el cotizador.</p>
+      <a id="noticeBtn" class="s1-notice-btn" href="#">Ir al login de Prolibu</a>
+    </div>
+  </div>
+
+  <!-- ==================== MENÚ CREAR / EDITAR ==================== -->
+  <div id="chooserView" style="display:none;">
+    <div class="s1-wrap">
+      <div class="s1-pagehead">
+        <span class="s1-eyebrow">Cotizador de financiamiento</span>
+        <h1>¿Qué querés hacer?</h1>
+        <p>Creá una cotización nueva o editá la simulación de crédito de una existente.</p>
+      </div>
+      <div class="s1-choose">
+        <button class="s1-choose-card" id="chooseCrear" type="button">
+          <span class="s1-choose-ic">+</span>
+          <h3>Crear cotización</h3>
+          <p>Busca el producto, calcula el financiamiento del banco y genera el Deal + propuesta.</p>
+          <span class="s1-choose-go">Empezar →</span>
+        </button>
+        <button class="s1-choose-card" id="chooseEditar" type="button">
+          <span class="s1-choose-ic">✎</span>
+          <h3>Editar cotización</h3>
+          <p>Busca un Deal existente y actualiza su simulación de crédito.</p>
+          <span class="s1-choose-go">Buscar Deal →</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== APP (formulario + calculadora) ==================== -->
+  <div id="appView" style="display:none;">
+    <section class="s1-form">
+      <button id="backMenuBtn" class="s1-back">← Volver al menú</button>
+      <!-- Buscar Deal (solo modo editar) -->
+      <div class="s1-card" id="editLoadCard" style="display:none;">
+        <h2 class="s1-card-title">Buscar cotización a editar</h2>
+        <div class="s1-contact">
+          <input id="editSearch" class="s1-inp" placeholder="Negocio, nombre del contacto, correo o teléfono...">
+          <button id="editSearchBtn" class="s1-btn-inline">Buscar</button>
+        </div>
+        <div id="editStatus" class="s1-status"></div>
+        <div id="editResults" class="glg-results"></div>
+      </div>
+
+      <div id="dealForm">
+        <h1 class="s1-dealtitle" id="pageTitle">Nueva cotización</h1>
+
+        <!-- MÓDULO: CLIENTE -->
+        <div class="s1-card">
+          <h2 class="s1-card-title">Datos del cliente</h2>
+          <div class="s1-field">
+            <label class="s1-lbl">Buscar cliente</label>
+            <div class="s1-product">
+              <div class="s1-contact">
+                <input id="cSearch" class="s1-inp" placeholder="Busca por nombre, correo, teléfono o documento...">
+                <button id="cSearchBtn" class="s1-btn-inline">Buscar</button>
+              </div>
+              <div id="cResults" class="s1-presults"></div>
+            </div>
+            <div id="cStatus" class="s1-status"></div>
+          </div>
+          <div id="contactFields" class="s1-field" style="display:none;">
+            <div class="s1-grid">
+              <input id="cNombre" class="s1-inp" placeholder="Nombre">
+              <input id="cApellido" class="s1-inp" placeholder="Apellido">
+              <input id="cEmail" class="s1-inp" type="email" placeholder="Correo">
+              <div class="s1-inpgroup"><select id="cTelCode" class="s1-prefix-sel" title="Código de país"></select><input id="cTel" class="s1-inp" inputmode="tel" placeholder="Teléfono"></div>
+              <select id="cDocType" class="s1-inp">
+                <option value="">Tipo de documento</option>
+                <option>INE / IFE</option>
+                <option>CURP</option>
+                <option>RFC</option>
+                <option>Pasaporte</option>
+                <option>Licencia de conducir</option>
+                <option>Cédula profesional</option>
+                <option>Cédula</option>
+                <option>Cartilla militar</option>
+                <option>Acta de nacimiento</option>
+              </select>
+              <input id="cDocId" class="s1-inp" placeholder="Número de documento">
+            </div>
+          </div>
+        </div>
+
+        <!-- MÓDULO: NEGOCIO -->
+        <div class="s1-card">
+          <h2 class="s1-card-title">Datos del negocio</h2>
+          <div class="s1-field">
+            <label class="s1-lbl">Título de la propuesta</label>
+            <input id="dealTitle" class="s1-inp" placeholder="Ej. Financiamiento Meteor 350">
+          </div>
+          <div class="s1-field">
+            <label class="s1-lbl">Producto a cotizar</label>
+            <div class="s1-product">
+              <input id="pSearch" class="s1-inp" placeholder="Buscar producto (modelo o SKU)...">
+              <div id="pResults" class="s1-presults"></div>
+            </div>
+          </div>
+          <div class="s1-field">
+            <label class="s1-check">
+              <input type="checkbox" id="retomaCheck">
+              <span class="s1-check-box"></span>
+              <span class="s1-check-txt">El cliente entrega un vehículo de retoma (parte de pago)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- MÓDULO: VEHÍCULO DE RETOMA (parte de pago) -->
+        <div class="s1-card" id="retomaModule" style="display:none;">
+          <h2 class="s1-card-title">Vehículo de retoma <span class="s1-card-sub">parte de pago</span></h2>
+          <div class="s1-grid">
+            <div class="s1-field">
+              <label class="s1-lbl">Marca</label>
+              <input id="rMarca" class="s1-inp" placeholder="Ej. Honda">
+            </div>
+            <div class="s1-field">
+              <label class="s1-lbl">Modelo</label>
+              <input id="rModelo" class="s1-inp" placeholder="Ej. CB 190R">
+            </div>
+            <div class="s1-field">
+              <label class="s1-lbl">Kilometraje</label>
+              <div class="s1-inpgroup"><input id="rKm" class="s1-inp" inputmode="numeric" placeholder="0"><span class="s1-suffix">km</span></div>
+            </div>
+            <div class="s1-field">
+              <label class="s1-lbl">Precio de retoma</label>
+              <div class="s1-inpgroup"><select id="rMoneda" class="s1-prefix-sel" title="Moneda"><option>MXN</option><option>USD</option></select><input id="rPrecio" class="s1-inp" inputmode="numeric" placeholder="0"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <nav class="glg-tabs s1-tabs" id="bankTabs">
+      <button class="glg-tab" data-bank="santander">Santander</button>
+      <button class="glg-tab" data-bank="bbva">BBVA</button>
+      <button class="glg-tab" data-bank="banregio">Banregio</button>
+    </nav>
+
+    <div class="glg-quoted" id="quotedBanner" style="display:none;">
+      <span class="glg-quoted-label">Producto</span>
+      <span class="glg-quoted-model" id="quotedModel">—</span>
+      <span class="glg-quoted-sku" id="quotedSku"></span>
+    </div>
+
+    <div id="skinMount"></div>
+  </div>
+
+  <!-- ==================== POPUP DE ÉXITO ==================== -->
+  <div id="modal" class="s1-modal" style="display:none;">
+    <div class="s1-modal-card">
+      <div class="s1-modal-ic">✓</div>
+      <h3 id="modalTitle">¡Cotización creada!</h3>
+      <p id="modalMsg">¿Qué querés hacer ahora?</p>
+      <div class="s1-modal-actions">
+        <a id="mBtnWa" class="s1-modal-btn s1-modal-wa" target="_blank" rel="noopener">Enviar por WhatsApp</a>
+        <a id="mBtnMail" class="s1-modal-btn s1-modal-mail">Enviar por correo</a>
+        <a id="mBtnOpen" class="s1-modal-btn s1-modal-open" href="#">Abrir cotización</a>
+        <button id="mBtnClose" class="s1-modal-btn s1-modal-close" type="button">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js?v=14"></script>
+  <script src="bankmatrix.js?v=14"></script>
+  <script src="engine.js?v=14"></script>
+  <script src="skins.js?v=14"></script>
+  <script src="calculator.js?v=14"></script>
+  <script src="app.js?v=14"></script>
+</body>
+</html>

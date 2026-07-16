@@ -1,0 +1,13 @@
+{
+  "objectAssigned": "Deal",
+  "active": true,
+  "customFields": {
+    "simulacionCredito": {
+      "isCustomField": true,
+      "type": "string",
+      "uiCom": "TextArea",
+      "label": "Simulación de crédito (JSON)",
+      "description": "Simulación de financiamiento del banco elegido, en JSON. La escribe el cotizador (Site 1) y la lee el visor (Site 2)."
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "variables": [],
+  "lifecycleHooks": [],
+  "readme": "# Cotización — GLG (Site 1)\n\nSite con **login** para que el asesor cree una cotización de punta a punta:\n\n1. **Login** (`POST /v2/auth/signin`) → guarda apiKey.\n2. **Buscar/crear contacto** (`GET /v2/contact/{email}`, `POST /v2/contact/`).\n3. **Título** de la propuesta.\n4. **Seleccionar producto** (`GET /v2/product/search`) → fija cilindrada por SKU.\n5. **Calculadora 3 bancos** (reusa `calculator.js` + `skins.js` + `data.js` + `engine.js`).\n6. **Crear el Deal** (`POST /v2/deal/`) con `proposal.quote.lineItems` + custom fields de financiamiento.\n\n## Relación con el Site 2\n\n| Site 1 (`cotizacion`) | Site 2 (`cotizador`) |\n|---|---|\n| Formulario con login, crea el Deal | Calculadora embebida en la propuesta |\n| Usa la calculadora completa | Lee el SKU cotizado (informativa) |\n\nAmbos comparten `data.js`, `engine.js`, `skins.js`, `calculator.js`, `styles.css`.\n\n## Custom fields (modelo Deal)\n\nGuarda: `finBanco`, `finTasaAnual`, `finEnganchePct`, `finEnganche`, `finPlazoMeses`,\n`finComisionApertura`, `finSeguro`, `finSeguroVida`, `finPagoInicial`, `finCuotaMensual`, `finImporteTotal`.\nSe crean con `./prolibu customfield push` (ver carpeta `objects/CustomField/Deal.json`).\n\n## Desarrollo\n\n```bash\nnode prolibu site dev  --domain glgmotomex.prolibu.com --prefix cotizacion --watch --port 3031\nnode prolibu site prod --domain glgmotomex.prolibu.com --prefix cotizacion\n```\n\n> ⚠️ Endpoints de `product/search` y creación de `contact`/`deal` pueden requerir ajuste\n> de parámetros tras probar contra la API real.\n",
+  "git": {
+    "repositoryUrl": ""
+  },
+  "siteType": "Static"
+}

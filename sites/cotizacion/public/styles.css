@@ -1,0 +1,164 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  background: #fff;
+  color: #121212;
+}
+
+/* ============================================================================
+   CHROME NEUTRAL GLG
+   ============================================================================ */
+.glg-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #17181c; color: #fff; padding: 12px 28px; flex-wrap: wrap; gap: 12px;
+}
+.glg-logo { font-size: 22px; font-weight: 800; color: #e30613; letter-spacing: -.3px; display: flex; align-items: baseline; gap: 8px; }
+.glg-logo-sub { font-size: 12px; font-weight: 500; color: #cfcfcf; letter-spacing: .5px; }
+.glg-tabs { display: flex; gap: 8px; }
+.glg-tab {
+  border: 1px solid #3a3b40; background: transparent; color: #d5d5d5;
+  padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: all .15s;
+}
+.glg-tab:hover { border-color: #6a6b70; color: #fff; }
+.glg-tab.active { color: #fff; border-color: transparent; }
+body.skin-santander .glg-tab.active { background: #ec0000; }
+body.skin-bbva .glg-tab.active { background: #072146; }
+body.skin-banregio .glg-tab.active { background: #ff6a00; }
+
+/* Quoted vehicle banner */
+.glg-quoted { max-width: 1040px; margin: 16px auto 0; padding: 12px 18px; display: flex; align-items: center; gap: 12px; background: #eef6f0; border: 1px solid #cfe6d8; border-radius: 10px; }
+.glg-quoted-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: #2e7d4f; }
+.glg-quoted-model { font-size: 16px; font-weight: 700; color: #1a1a1a; }
+.glg-quoted-sku { font-size: 13px; color: #6b7280; }
+
+/* Lead block (form mode) */
+.glg-lead { max-width: 1040px; margin: 24px auto 0; padding: 0 24px; }
+.glg-lead-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: #6b7280; margin: 0 0 14px; }
+.glg-lead-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 560px) { .glg-lead-grid { grid-template-columns: 1fr; } }
+.glg-inp {
+  width: 100%; border: 1px solid #dcdfe4; border-radius: 8px; padding: 12px 14px;
+  font-size: 15px; font-family: inherit; outline: none;
+}
+.glg-inp:focus { border-color: #17181c; }
+.glg-verify { margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.glg-verify-btn { background: none; border: none; color: #1973b8; font-size: 14px; font-weight: 600; cursor: pointer; padding: 0; font-family: inherit; }
+.glg-lead-status { font-size: 13px; color: #6b7280; }
+
+/* ============================================================================
+   SKIN: BBVA
+   ============================================================================ */
+.bbva { max-width: 1040px; margin: 0 auto; padding: 24px 24px 80px; }
+.bbva-logo-row { padding: 12px 0 28px; }
+.bbva-logo { font-weight: 800; font-size: 30px; font-style: italic; color: #072146; letter-spacing: 1px; }
+.bbva-grid { display: grid; grid-template-columns: 1fr 400px; gap: 56px; align-items: start; }
+@media (max-width: 840px) { .bbva-grid { grid-template-columns: 1fr; gap: 32px; } }
+.bbva-title { font-size: 40px; line-height: 1.1; font-weight: 800; margin: 0 0 12px; letter-spacing: -.5px; color: #121212; }
+@media (max-width: 480px) { .bbva-title { font-size: 30px; } }
+.bbva-sub { font-size: 16px; color: #6b7280; margin: 0 0 28px; }
+.bbva-field { margin-bottom: 22px; }
+.bbva-input { width: 100%; border: none; border-bottom: 1px solid #c9ccd1; background: transparent; font-size: 17px; padding: 10px 2px; font-family: inherit; color: #121212; outline: none; }
+.bbva-input::placeholder { color: #9aa0a6; }
+.bbva-input:focus { border-bottom: 2px solid #072146; }
+.bbva-input-affix { display: flex; align-items: center; border-bottom: 1px solid #c9ccd1; }
+.bbva-input-affix:focus-within { border-bottom: 2px solid #072146; }
+.bbva-input-affix .bbva-input { border-bottom: none; }
+.bbva-affix { color: #6b7280; font-size: 17px; padding-left: 8px; }
+.bbva-select { position: relative; border-bottom: 1px solid #c9ccd1; }
+.bbva-select:focus-within { border-bottom: 2px solid #072146; }
+.bbva-select select { width: 100%; border: none; background: transparent; font-size: 17px; padding: 10px 24px 10px 2px; font-family: inherit; color: #121212; outline: none; appearance: none; cursor: pointer; }
+.bbva-chevron { position: absolute; right: 4px; top: 50%; transform: translateY(-60%); color: #072146; pointer-events: none; font-size: 18px; }
+.bbva-note { font-size: 13px; color: #6b7280; margin: 6px 0 26px; line-height: 1.5; }
+.bbva-i { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: #072146; color: #fff; font-size: 10px; font-style: italic; font-weight: 700; vertical-align: middle; }
+.bbva-btn { background: #072146; color: #fff; border: none; border-radius: 26px; padding: 15px 40px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity .15s; }
+.bbva-btn:hover { opacity: .9; }
+
+/* ---- Campo de descuento compartido (dentro de la calculadora) ---- */
+.calc-desc { margin: 16px 0 6px; }
+.calc-desc-head { font-size: 12.5px; font-weight: 700; color: #6b7280; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.calc-desc-tag { font-size: 10.5px; font-weight: 600; color: #9aa0a6; background: #f0f1f3; border-radius: 10px; padding: 2px 9px; }
+.calc-desc-row { display: flex; align-items: stretch; gap: 8px; }
+.calc-desc-inp { flex: 1; min-width: 0; border: 1px solid #dcdfe4; border-radius: 8px; padding: 12px 14px; font-size: 15px; font-family: inherit; outline: none; background: #fff; color: #17181c; }
+.calc-desc-inp:focus { border-color: #17181c; }
+.calc-desc-tg { display: inline-flex; border: 1px solid #dcdfe4; border-radius: 8px; overflow: hidden; flex: none; }
+.calc-tg { border: none; background: #fff; color: #6b7280; font-size: 15px; font-weight: 700; width: 44px; cursor: pointer; font-family: inherit; }
+.calc-tg + .calc-tg { border-left: 1px solid #dcdfe4; }
+.calc-tg.active { background: #17181c; color: #fff; }
+.bbva-card { background: #f4f5f7; border-radius: 6px; padding: 30px 28px; }
+.bbva-cuota { font-size: 40px; font-weight: 800; color: #121212; letter-spacing: -.5px; }
+.bbva-cuota-label { font-size: 16px; color: #121212; margin-bottom: 22px; }
+.bbva-costs-head { padding: 16px 0 8px; color: #1464a5; font-size: 16px; font-weight: 700; border-top: 1px solid #dfe2e6; }
+.bbva-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; font-size: 14.5px; color: #333; }
+.bbva-row small { color: #6b7280; font-size: 12px; }
+.bbva-row span:last-child { font-weight: 600; white-space: nowrap; }
+.bbva-row-strong { border-top: 1px solid #dfe2e6; margin-top: 6px; padding-top: 13px; }
+.bbva-row-strong span { font-weight: 700; }
+.bbva-row-total span:last-child { color: #072146; font-size: 16px; }
+.bbva-card-note { font-size: 12px; color: #6b7280; margin-top: 18px; line-height: 1.5; }
+
+/* ============================================================================
+   SKIN: SANTANDER (rojo)
+   ============================================================================ */
+.stdr { max-width: 1040px; margin: 0 auto; padding: 24px 24px 80px; }
+.stdr-logo-row { display: flex; align-items: center; gap: 10px; padding: 12px 0 30px; }
+.stdr-flame { width: 26px; height: 26px; background: #ec0000; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: inline-block; }
+.stdr-logo { font-size: 24px; font-weight: 700; color: #ec0000; }
+.stdr-grid { display: grid; grid-template-columns: 1fr 380px; gap: 48px; align-items: start; }
+@media (max-width: 840px) { .stdr-grid { grid-template-columns: 1fr; gap: 30px; } }
+.stdr-title { font-size: 34px; font-weight: 700; margin: 0 0 10px; color: #1a1a1a; }
+.stdr-sub { font-size: 15px; color: #666; margin: 0 0 26px; }
+.stdr-label { display: block; font-size: 13px; font-weight: 700; color: #444; margin: 16px 0 6px; }
+.stdr-field { position: relative; }
+.stdr-ctrl { width: 100%; border: 1px solid #d6d6d6; border-radius: 8px; padding: 13px 14px; font-size: 16px; font-family: inherit; outline: none; background: #fff; color: #1a1a1a; appearance: none; }
+.stdr-ctrl:focus { border-color: #ec0000; box-shadow: 0 0 0 3px rgba(236,0,0,.1); }
+.stdr-affix { display: flex; align-items: center; border: 1px solid #d6d6d6; border-radius: 8px; padding-left: 12px; }
+.stdr-affix:focus-within { border-color: #ec0000; box-shadow: 0 0 0 3px rgba(236,0,0,.1); }
+.stdr-affix .stdr-ctrl { border: none; box-shadow: none; padding-left: 6px; }
+.stdr-cur { color: #888; font-size: 16px; }
+.stdr-btn { margin-top: 26px; background: #ec0000; color: #fff; border: none; border-radius: 26px; padding: 15px 40px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .15s; }
+.stdr-btn:hover { background: #cc0000; }
+.stdr-card { background: #fff; border: 1px solid #eee; border-radius: 14px; box-shadow: 0 12px 30px rgba(0,0,0,.06); padding: 28px 26px; }
+.stdr-card-label { font-size: 15px; color: #666; }
+.stdr-cuota { font-size: 44px; font-weight: 800; color: #ec0000; letter-spacing: -.5px; margin: 4px 0 20px; }
+.stdr-rows { border-top: 1px solid #eee; padding-top: 10px; }
+.stdr-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; font-size: 14.5px; color: #444; }
+.stdr-row small { color: #999; font-size: 12px; }
+.stdr-row span:last-child { font-weight: 600; white-space: nowrap; }
+.stdr-row-strong { border-top: 1px solid #eee; margin-top: 6px; padding-top: 12px; }
+.stdr-row-strong span { font-weight: 700; }
+.stdr-row-total span:last-child { color: #ec0000; font-size: 17px; }
+.stdr-note { font-size: 12px; color: #999; margin-top: 16px; }
+
+/* ============================================================================
+   SKIN: BANREGIO (naranja)
+   ============================================================================ */
+.bnr { max-width: 1080px; margin: 0 auto; padding: 24px 24px 80px; }
+.bnr-logo-row { padding: 12px 0 24px; }
+.bnr-logo { font-size: 26px; font-weight: 800; color: #2b2b2b; }
+.bnr-logo-accent { color: #ff6a00; }
+.bnr-title { font-size: 38px; font-weight: 800; color: #2b2b2b; margin: 0 0 10px; }
+.bnr-accent { color: #ff6a00; }
+.bnr-sub { font-size: 17px; color: #555; margin: 0 0 30px; font-weight: 500; }
+.bnr-section { font-size: 20px; color: #ff6a00; font-weight: 700; margin: 0 0 16px; }
+.bnr-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 620px) { .bnr-fields { grid-template-columns: 1fr; } }
+.bnr-ctrl { width: 100%; border: 1px solid #d5d5d5; border-radius: 12px; padding: 15px 16px; font-size: 16px; font-family: inherit; outline: none; background: #fff; color: #2b2b2b; appearance: none; }
+.bnr-ctrl:focus { border-color: #ff6a00; box-shadow: 0 0 0 3px rgba(255,106,0,.12); }
+.bnr-affix { display: flex; align-items: center; border: 1px solid #d5d5d5; border-radius: 12px; padding-right: 14px; }
+.bnr-affix:focus-within { border-color: #ff6a00; box-shadow: 0 0 0 3px rgba(255,106,0,.12); }
+.bnr-affix .bnr-ctrl { border: none; box-shadow: none; }
+.bnr-cur { color: #888; font-size: 16px; }
+.bnr-btn { margin-top: 22px; background: #ff6a00; color: #fff; border: none; border-radius: 26px; padding: 14px 44px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .15s; }
+.bnr-btn:hover { background: #e85f00; }
+.bnr-result { display: grid; grid-template-columns: 1fr 1.4fr; gap: 40px; margin-top: 40px; padding: 32px; background: #f6f6f6; border-radius: 16px; align-items: start; }
+@media (max-width: 620px) { .bnr-result { grid-template-columns: 1fr; gap: 24px; } }
+.bnr-pago-label { font-size: 26px; color: #ff6a00; font-weight: 700; }
+.bnr-cuota { font-size: 46px; font-weight: 800; color: #1a1a1a; letter-spacing: -.5px; }
+.bnr-resumen { font-size: 24px; color: #ff6a00; font-weight: 700; margin: 0 0 14px; }
+.bnr-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; font-size: 15px; color: #444; border-bottom: 1px solid #e6e6e6; }
+.bnr-row small { color: #999; font-size: 12px; }
+.bnr-row span:last-child { font-weight: 600; white-space: nowrap; }
+.bnr-row-strong span { font-weight: 700; }
+.bnr-row-total span:last-child { color: #ff6a00; font-size: 17px; }
