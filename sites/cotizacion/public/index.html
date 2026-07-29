@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20">
+  <link rel="stylesheet" href="styles.css?v=24">
   <style>
     /* ============================================================
        Cotizador GLG — Estética Prolibu Suite (claro, neutral).
@@ -159,13 +159,15 @@
     .glg-res-meta { font-size: 12.5px; color: var(--muted); }
     .glg-res-go { flex: none; padding-top: 2px; color: var(--accent); font-size: 13px; font-weight: 700; }
 
+    /* ---- Banda de contenido: mismo ancho para todas las secciones ---- */
+    .s1-band { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
     /* ---- Lienzo blanco para las skins de banco (clon fiel) ---- */
     #skinMount { background: transparent; }
     #skinMount:not(:empty) {
-      max-width: 1100px; margin: 20px auto 44px; background: var(--surface);
+      margin: 20px 0 44px; background: var(--surface);
       border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.05);
     }
-    @media (max-width: 1140px) { #skinMount:not(:empty) { margin: 16px 16px 36px; } }
 
     /* ---- Popup de éxito ---- */
     .s1-modal { position: fixed; inset: 0; z-index: 100; background: rgba(23,24,28,.5); display: flex; align-items: center; justify-content: center; padding: 20px; }
@@ -187,6 +189,11 @@
     .s1-modal-dual { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .s1-modal-ghost { background: var(--surface); color: var(--text-2); border: 1px solid var(--line-2); }
     .s1-modal-ghost:hover { color: var(--text); border-color: var(--muted); background: var(--surface-2); }
+
+    /* ---- Footer minimalista ---- */
+    .pl-footer { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 30px 20px 36px; }
+    .pl-footer-txt { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: .01em; }
+    .pl-footer-logo { height: 15px; width: auto; display: block; opacity: .92; }
   </style>
 </head>
 <body>
@@ -331,6 +338,14 @@
               <div id="pResults" class="s1-presults"></div>
             </div>
           </div>
+          <div class="s1-field" id="cilField" style="display:none;">
+            <label class="s1-lbl">Cilindrada</label>
+            <select id="cilSelect" class="s1-inp">
+              <option value="350">350 cc</option>
+              <option value="450">450 cc</option>
+              <option value="650">650 cc</option>
+            </select>
+          </div>
           <div class="s1-field">
             <label class="s1-check">
               <input type="checkbox" id="retomaCheck">
@@ -371,13 +386,17 @@
       <button class="glg-tab" data-bank="banregio">Banregio</button>
     </nav>
 
-    <div class="glg-quoted" id="quotedBanner" style="display:none;">
-      <span class="glg-quoted-label">Producto</span>
-      <span class="glg-quoted-model" id="quotedModel">—</span>
-      <span class="glg-quoted-sku" id="quotedSku"></span>
+    <div class="s1-band">
+      <div class="glg-quoted" id="quotedBanner" style="display:none;">
+        <span class="glg-quoted-label">Producto</span>
+        <span class="glg-quoted-model" id="quotedModel">—</span>
+        <span class="glg-quoted-sku" id="quotedSku"></span>
+      </div>
     </div>
 
-    <div id="skinMount"></div>
+    <div class="s1-band">
+      <div id="skinMount"></div>
+    </div>
   </div>
 
   <!-- ==================== POPUP DE ÉXITO ==================== -->
@@ -400,11 +419,35 @@
     </div>
   </div>
 
-  <script src="data.js?v=20"></script>
-  <script src="bankmatrix.js?v=20"></script>
-  <script src="engine.js?v=20"></script>
-  <script src="skins.js?v=20"></script>
-  <script src="calculator.js?v=20"></script>
-  <script src="app.js?v=20"></script>
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="pl-footer">
+    <span class="pl-footer-txt">Powered by</span>
+    <svg class="pl-footer-logo" version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 386.155 595.281 67.671" role="img" aria-label="Prolibu">
+      <g>
+        <g fill="#4b5563">
+          <path d="M267.19,440.518c0,1.091-0.499,1.527-1.589,1.527h-5.766c-1.091,0-1.527-0.437-1.527-1.527v-41.295c0-1.091,0.436-1.527,1.527-1.527h13.682c12.529,0,18.825,5.143,18.825,15.334c0,10.316-6.701,15.833-19.323,15.833h-5.018c-0.561,0-0.811,0.249-0.811,0.811V440.518z M267.19,419.823c0,0.561,0.25,0.81,0.811,0.81h5.08c6.514,0,10.067-2.4,10.067-7.48s-3.429-7.23-10.067-7.23h-5.08c-0.561,0-0.811,0.249-0.811,0.81V419.823z"/>
+          <path d="M310.98,442.045c-1.092,0-1.527-0.437-1.527-1.527v-41.295c0-1.091,0.436-1.527,1.527-1.527h13.432c12.748,0,18.949,4.737,18.949,14.368c0,5.766-2.992,9.631-8.041,11.719l10.254,16.269c0.313,0.562,0.5,0.936,0.5,1.216c0,0.499-0.5,0.748-1.527,0.748h-6.141c-1.59,0-2.15-0.312-3.117-1.839l-10.846-17.983c-0.248-0.373-0.373-0.686-0.373-0.966c0-0.437,0.373-0.624,1.152-0.686c5.33-0.561,8.883-3.117,8.883-7.729c0-5.018-3.49-7.23-10.004-7.23h-4.957c-0.561,0-0.809,0.125-0.809,0.81v34.096c0,1.091-0.5,1.527-1.59,1.527h-5.766V442.045z"/>
+          <path d="M409.871,419.823c0.188,13.121-10.129,23.25-23.5,23.001c-13.121,0.187-23.375-9.756-23.188-22.752c-0.188-13.121,10.129-23.375,23.375-23.125C399.773,396.76,410.058,406.827,409.871,419.823z M400.677,419.948c0-8.758-6.266-14.773-14.182-14.773c-7.979,0-14.119,6.078-14.119,14.773c0,8.54,6.078,14.648,14.057,14.648C394.349,434.564,400.677,428.425,400.677,419.948z"/>
+          <path d="M454.064,433.816c1.092,0,1.527,0.437,1.527,1.527v5.205c0,1.091-0.436,1.527-1.527,1.527h-25.586c-1.092,0-1.527-0.437-1.527-1.527v-41.327c0-1.091,0.436-1.527,1.527-1.527h5.766c1.09,0,1.588,0.437,1.588,1.527v33.753c0,0.561,0.25,0.81,0.811,0.81h17.422V433.816z"/>
+          <path d="M474.23,442.045c-1.092,0-1.527-0.437-1.527-1.527v-41.295c0-1.091,0.436-1.527,1.527-1.527h5.766c1.09,0,1.59,0.437,1.59,1.527v41.295c0,1.091-0.5,1.527-1.59,1.527H474.23L474.23,442.045z"/>
+          <path d="M514.902,397.695c10.721,0,16.736,3.678,16.736,12.093c0,4.612-2.213,7.729-6.016,9.319c4.551,1.215,7.418,4.737,7.418,9.63c0,8.883-5.953,13.309-17.92,13.309h-14.898c-1.09,0-1.527-0.437-1.527-1.527v-41.295c0-1.091,0.438-1.527,1.527-1.527H514.902z M507.546,414.93c0,0.561,0.25,0.811,0.811,0.811h6.389c5.33,0,7.73-1.652,7.73-5.143c0-3.553-2.588-5.018-8.166-5.018h-5.953c-0.561,0-0.811,0.125-0.811,0.81V414.93z M515.337,423.625h-6.98c-0.686,0-0.811,0.188-0.811,0.873v8.82c0,0.561,0.25,0.811,0.811,0.811h6.701c6.139,0,8.727-1.59,8.727-5.393C523.816,425.121,520.98,423.625,515.337,423.625z"/>
+          <path d="M550.121,423.158v-23.936c0-1.091,0.436-1.527,1.527-1.527h5.766c1.09,0,1.588,0.437,1.588,1.527v23.312c0,7.667,3.555,12.03,10.316,12.03c6.639,0,10.379-4.363,10.379-11.968v-23.375c0-1.091,0.438-1.527,1.527-1.527h5.766c1.092,0,1.59,0.437,1.59,1.527v23.811c0,12.996-8.104,19.76-19.572,19.76C557.724,442.824,550.121,436.342,550.121,423.158z"/>
+        </g>
+        <g>
+          <path fill="#3E82F7" d="M40.33,454.698c-19.167,0.374-34.657-15.271-34.377-34.563c-0.28-19.074,15.022-34.376,34.003-33.972c19.448-0.405,34.844,15.085,34.563,34.346C74.8,439.707,59.497,454.979,40.33,454.698z M40.049,395.17c-13.401-0.281-24.497,10.815-24.216,25.058c0,14.71,10.815,25.463,24.403,25.463c13.589,0,24.403-10.534,24.403-25.245C64.92,406.266,53.419,394.89,40.049,395.17z"/>
+          <path fill="#D4145A" d="M146.233,442.73l47.217-21.91l-47.28-21.879c-2.369-1.184-2.961-1.87-2.961-3.958v-5.548c0-1.371,0.405-2.088,1.278-2.088c0.312,0,0.904,0.187,1.683,0.499l60.744,29.109c4.052,1.995,4.956,2.494,4.956,3.678c0,1.278-0.904,1.87-4.956,3.865l-60.712,28.829c-0.779,0.312-1.372,0.499-1.683,0.499c-0.904,0-1.278-0.687-1.278-1.995v-5.143C143.241,444.601,143.833,443.821,146.233,442.73z"/>
+          <path fill="#FDBD00" d="M95.588,454.667c-1.185,0-1.683-0.498-1.683-1.683v-65.138c0-1.184,0.499-1.683,1.683-1.683h6.389c1.184,0,1.745,0.499,1.745,1.683v65.138c0,1.185-0.561,1.683-1.745,1.683H95.588z"/>
+          <path fill="#FDBD00" d="M115.69,454.667c-1.184,0-1.683-0.498-1.683-1.683v-65.138c0-1.184,0.499-1.683,1.683-1.683h6.389c1.185,0,1.746,0.499,1.746,1.683v65.138c0,1.185-0.561,1.683-1.746,1.683H115.69z"/>
+        </g>
+      </g>
+    </svg>
+  </footer>
+
+  <script src="data.js?v=24"></script>
+  <script src="bankmatrix.js?v=24"></script>
+  <script src="engine.js?v=24"></script>
+  <script src="skins.js?v=24"></script>
+  <script src="calculator.js?v=24"></script>
+  <script src="app.js?v=24"></script>
 </body>
 </html>

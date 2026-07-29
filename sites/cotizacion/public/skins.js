@@ -97,27 +97,26 @@ const SKINS = {
   banregio: () => `
     <div class="bnr">
       <div class="bnr-logo-row"><span class="bnr-logo">Ban<span class="bnr-logo-accent">regio</span></span></div>
-      <h1 class="bnr-title">Simulador <span class="bnr-accent">Crédito Moto</span></h1>
-      <p class="bnr-sub">Cotízalo a tu medida en nuestro simulador de crédito. ¡Queremos apoyarte!</p>
-      <h3 class="bnr-section">Características</h3>
-      <div class="bnr-fields">
-        <select id="f_modelo" class="bnr-ctrl"></select>
-        <div class="bnr-affix"><input id="f_precio" readonly tabindex="-1" class="bnr-ctrl" type="text" inputmode="numeric" placeholder="Precio del vehículo"><span class="bnr-cur">$</span></div>
-        <select id="f_enganche" class="bnr-ctrl"></select>
-        <select id="f_plazo" class="bnr-ctrl"></select>
-      </div>
-      ${descuentoField()}
-      <button id="f_guardar" class="bnr-btn">Guardar cotización</button>
-
-      <div class="bnr-result">
-        <div class="bnr-result-left">
+      <div class="bnr-grid">
+        <div class="bnr-left">
+          <h1 class="bnr-title">Simulador <span class="bnr-accent">Crédito Moto</span></h1>
+          <p class="bnr-sub">Cotízalo a tu medida en nuestro simulador de crédito. ¡Queremos apoyarte!</p>
+          <h3 class="bnr-section">Características</h3>
+          <div class="bnr-fields">
+            <select id="f_modelo" class="bnr-ctrl"></select>
+            <div class="bnr-affix"><input id="f_precio" readonly tabindex="-1" class="bnr-ctrl" type="text" inputmode="numeric" placeholder="Precio del vehículo"><span class="bnr-cur">$</span></div>
+            <select id="f_enganche" class="bnr-ctrl"></select>
+            <select id="f_plazo" class="bnr-ctrl"></select>
+          </div>
+          ${descuentoField()}
+          <button id="f_guardar" class="bnr-btn">Guardar cotización</button>
+        </div>
+        <aside class="bnr-card">
           <div class="bnr-pago-label">Pago de</div>
           <div class="bnr-cuota" id="o_cuota">$0.00</div>
-        </div>
-        <div class="bnr-result-right">
           <h3 class="bnr-resumen">Resumen</h3>
           ${breakdownRows('bnr')}
-        </div>
+        </aside>
       </div>
     </div>`,
 };

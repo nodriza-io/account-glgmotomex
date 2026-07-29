@@ -30,7 +30,7 @@ body.skin-bbva .glg-tab.active { background: #072146; }
 body.skin-banregio .glg-tab.active { background: #ff6a00; }
 
 /* Quoted vehicle banner */
-.glg-quoted { max-width: 1040px; margin: 16px auto 0; padding: 13px 18px; display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #e6e7ea; border-left: 3px solid #4f46e5; border-radius: 12px; }
+.glg-quoted { margin: 16px 0 0; padding: 13px 18px; display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #e6e7ea; border-left: 3px solid #4f46e5; border-radius: 12px; }
 .glg-quoted-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #4f46e5; }
 .glg-quoted-model { font-size: 16px; font-weight: 700; color: #17181c; }
 .glg-quoted-sku { font-size: 13px; color: #8a9099; }
@@ -74,7 +74,7 @@ body.skin-banregio .glg-tab.active { background: #ff6a00; }
 .bbva-chevron { position: absolute; right: 4px; top: 50%; transform: translateY(-60%); color: #072146; pointer-events: none; font-size: 18px; }
 .bbva-note { font-size: 13px; color: #6b7280; margin: 6px 0 26px; line-height: 1.5; }
 .bbva-i { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: #072146; color: #fff; font-size: 10px; font-style: italic; font-weight: 700; vertical-align: middle; }
-.bbva-btn { background: #072146; color: #fff; border: none; border-radius: 26px; padding: 15px 40px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity .15s; }
+.bbva-btn { margin-top: 24px; background: #072146; color: #fff; border: none; border-radius: 26px; padding: 15px 40px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity .15s; }
 .bbva-btn:hover { opacity: .9; }
 
 /* ---- Campo de descuento compartido (dentro de la calculadora) ---- */
@@ -154,11 +154,12 @@ body.skin-banregio .glg-tab.active { background: #ff6a00; }
 .bnr-cur { color: #888; font-size: 16px; }
 .bnr-btn { margin-top: 22px; background: #ff6a00; color: #fff; border: none; border-radius: 26px; padding: 14px 44px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .15s; }
 .bnr-btn:hover { background: #e85f00; }
-.bnr-result { display: grid; grid-template-columns: 1fr 1.4fr; gap: 40px; margin-top: 40px; padding: 32px; background: #f6f6f6; border-radius: 16px; align-items: start; }
-@media (max-width: 620px) { .bnr-result { grid-template-columns: 1fr; gap: 24px; } }
-.bnr-pago-label { font-size: 26px; color: #ff6a00; font-weight: 700; }
-.bnr-cuota { font-size: 46px; font-weight: 800; color: #1a1a1a; letter-spacing: -.5px; }
-.bnr-resumen { font-size: 24px; color: #ff6a00; font-weight: 700; margin: 0 0 14px; }
+.bnr-grid { display: grid; grid-template-columns: 1fr 380px; gap: 48px; align-items: start; }
+@media (max-width: 840px) { .bnr-grid { grid-template-columns: 1fr; gap: 30px; } }
+.bnr-card { background: #fff8f3; border: 1px solid #ffe0cc; border-radius: 16px; padding: 26px 24px; }
+.bnr-pago-label { font-size: 14px; color: #ff6a00; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.bnr-cuota { font-size: 40px; font-weight: 800; color: #1a1a1a; letter-spacing: -.5px; margin: 2px 0 4px; }
+.bnr-resumen { font-size: 17px; color: #ff6a00; font-weight: 700; margin: 16px 0 8px; padding-top: 16px; border-top: 1px solid #ffe0cc; }
 .bnr-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; font-size: 15px; color: #444; border-bottom: 1px solid #e6e6e6; }
 .bnr-row small { color: #999; font-size: 12px; }
 .bnr-row span:last-child { font-weight: 600; white-space: nowrap; }

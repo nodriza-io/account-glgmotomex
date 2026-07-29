@@ -23,6 +23,8 @@ const state = { dealId: null, dealCode: null };
 const escAttr = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 // Convierte un texto con separadores/moneda a número (para precios de retoma, etc.).
 const parseMoney = s => { const n = parseFloat(String(s == null ? '' : s).replace(/[^\d.]/g, '')); return isNaN(n) ? 0 : n; };
+// Cilindrada elegida manualmente en el formulario (350/450/650); default 350.
+const getCilindrada = () => { const el = $('cilSelect'); const n = el ? parseInt(el.value, 10) : 0; return (n === 350 || n === 450 || n === 650) ? n : 350; };
 
 // ---------------- API ----------------
 function getKey() { return localStorage.getItem(KEY) || ''; }
@@ -154,6 +156,8 @@ function resetForm() {
   if ($('contactFields')) $('contactFields').style.display = 'none';
   setRetoma(null); // limpia y oculta el módulo de vehículo de retoma
   fillTelCodes(); if ($('cTelCode')) $('cTelCode').value = '52';
+  if ($('cilField')) $('cilField').style.display = 'none';
+  if ($('cilSelect')) $('cilSelect').value = '350';
   $('quotedBanner').style.display = 'none';
 }
 function showContactFields() { if ($('contactFields')) $('contactFields').style.display = 'block'; }
@@ -381,16 +385,19 @@ async function seleccionarProducto(p) {
       $('quotedModel').textContent = selectedProduct.productName;
     }
   } catch (e) { /* noop */ }
-  const cil = cilindradaDeSku(selectedProduct.productCode, selectedProduct.productName); // clasificación desde el Sheet (o data.js)
+  // Cilindrada MANUAL: el asesor la elige en el formulario (ya no dependemos del Sheet de clasificación).
+  $('cilField').style.display = '';
+  aplicarCilindrada();
+}
+
+// Monta/actualiza la calculadora con la cilindrada elegida y el producto seleccionado.
+function aplicarCilindrada() {
+  if (!selectedProduct) return;
+  const cil = getCilindrada();
   // Si el pricebook trae un precio placeholder (muy bajo), usa el precio indicativo por cilindrada.
-  if (cil && (!selectedProduct.price || selectedProduct.price < 1000)) selectedProduct.price = PRECIO_DEFAULT[cil] || selectedProduct.price;
-  if (cil) {
-    Calc.setVehicle({ cilindrada: cil, precio: selectedProduct.price || PRECIO_DEFAULT[cil], nombre: selectedProduct.productName, locked: true });
-    showCalc(true); // recién al elegir un producto con tabla aparece la calculadora (con su campo de descuento)
-  } else {
-    $('quotedSku').textContent = (selectedProduct.productCode ? `SKU ${selectedProduct.productCode} · ` : '') + 'sin tabla de financiamiento';
-    showCalc(false);
-  }
+  if (!selectedProduct.price || selectedProduct.price < 1000) selectedProduct.price = PRECIO_DEFAULT[cil] || selectedProduct.price;
+  Calc.setVehicle({ cilindrada: cil, precio: selectedProduct.price || PRECIO_DEFAULT[cil], nombre: selectedProduct.productName, locked: true });
+  showCalc(true);
 }
 
 // ---------------- Editar: buscar y cargar Deal ----------------
@@ -474,8 +481,8 @@ async function cargarDeal(id) {
       precio = precio || li.price || li.netUnitPrice || li.unitPrice || 0;
       pbeId = pbeId || li.pricebookEntryId || (li.pricebookEntry && (li.pricebookEntry._id || li.pricebookEntry));
     }
-    const cil = cilindradaDeSku(sku, nombre); // clasificación desde el Sheet (o data.js)
-    const cilindrada = cil || 350;
+    // Cilindrada: la guardada en el sim; fallback a la clasificación vieja o 350 (deals antiguos).
+    const cilindrada = (sim && sim.cilindrada) || cilindradaDeSku(sku, nombre) || 350;
     if ((!precio || precio <= 0)) precio = (PRECIO_DEFAULT && PRECIO_DEFAULT[cilindrada]) || 0;
     if (pbeId) selectedProduct = { pbeId: (typeof pbeId === 'object' ? pbeId._id : pbeId), productCode: sku || '', productName: nombre || 'Producto', price: precio };
     if (nombre) {
@@ -483,11 +490,13 @@ async function cargarDeal(id) {
       $('quotedSku').textContent = sku ? `SKU ${sku}` : '';
       $('quotedBanner').style.display = 'flex';
     }
+    $('cilField').style.display = '';
+    if ($('cilSelect')) $('cilSelect').value = String(cilindrada);
     const bancoKey = (sim && sim.banco) || 'bbva';
     const desc = (sim && sim.descuento) || 0;
     const dmode = (sim && sim.descuentoMode) || 'val';
     // El descuento (monto + modo) se restaura dentro de la calculadora al montar el skin.
-    Calc.loadQuote({ cilindrada, precio, nombre: nombre, banco: bancoKey, enganchePct: sim && sim.enganchePct, plazo: sim && sim.plazo, descuento: desc, descMode: dmode, locked: !!cil });
+    Calc.loadQuote({ cilindrada, precio, nombre: nombre, banco: bancoKey, enganchePct: sim && sim.enganchePct, plazo: sim && sim.plazo, descuento: desc, descMode: dmode, locked: !!nombre });
     setRetoma(sim && sim.retoma); // restaura el módulo de vehículo de retoma si existe
     $('editResults').innerHTML = ''; // al elegir una, se ocultan las demás respuestas de la búsqueda
     $('editSearch').value = (deal.proposal && deal.proposal.title) || deal.dealName || $('editSearch').value;
@@ -505,6 +514,7 @@ async function guardarCotizacion(r, st) {
   const sim = {
     banco: st.banco, bancoName: BANKS[st.banco].name,
     modelo: modeloNombre,
+    cilindrada: st.cilindrada,
     sku: (selectedProduct && selectedProduct.productCode) || '',
     pbeId: (selectedProduct && selectedProduct.pbeId) || null,
     precio: Math.max(0, (st.precio || 0) - (st.descuento || 0)), // NETO: lo que ve el Site 2
@@ -568,6 +578,7 @@ function wire() {
   $('editSearchBtn').addEventListener('click', buscarDeals);
   $('editSearch').addEventListener('keydown', e => { if (e.key === 'Enter') buscarDeals(); });
   $('editResults').addEventListener('click', e => { const b = e.target.closest('.glg-res'); if (b) cargarDeal(b.dataset.id); });
+  const cilSel = $('cilSelect'); if (cilSel) cilSel.addEventListener('change', aplicarCilindrada);
   const rc = $('retomaCheck'); if (rc) rc.addEventListener('change', toggleRetoma);
   const rp = $('rPrecio'); if (rp) rp.addEventListener('blur', e => { const v = parseMoney(e.target.value); e.target.value = v ? v.toLocaleString('es-MX') : ''; });
   const rk = $('rKm'); if (rk) rk.addEventListener('blur', e => { const v = parseInt(String(e.target.value).replace(/[^\d]/g, ''), 10); e.target.value = v ? v.toLocaleString('es-MX') : ''; });
