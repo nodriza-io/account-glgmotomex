@@ -573,9 +573,32 @@ function wire() {
   const rk = $('rKm'); if (rk) rk.addEventListener('blur', e => { const v = parseInt(String(e.target.value).replace(/[^\d]/g, ''), 10); e.target.value = v ? v.toLocaleString('es-MX') : ''; });
 }
 
+// Puebla el perfil del header (empresa + avatar) desde la sesión de Prolibu.
+// El nombre ya lo pinta validateSession() en #userName.
+function paintHeaderUser() {
+  try {
+    const me = JSON.parse(localStorage.getItem('me') || 'null');
+    if (!me) return;
+    const p = me.profile || me;
+    const name = [p.firstName, p.lastName].filter(Boolean).join(' ') || p.email || '';
+    const company = (p.company && (p.company.name || p.company)) || (me.account && (me.account.name || me.account)) || '';
+    const sub = $('plSub');
+    if (sub && company && typeof company === 'string') sub.textContent = company;
+    const av = $('plAvatar');
+    if (av) {
+      const pic = p.profilePicture || p.avatar || p.picture;
+      if (pic && typeof pic === 'string' && /^https?:/.test(pic)) {
+        av.innerHTML = ''; const img = document.createElement('img'); img.src = pic; img.alt = ''; av.appendChild(img);
+      } else if (name) {
+        av.textContent = name.trim().charAt(0).toUpperCase();
+      }
+    }
+  } catch (e) { /* noop */ }
+}
+
 async function boot() {
   const ok = await validateSession();
-  if (ok) { await Promise.all([loadBankMatrix(), loadModelosMatrix()]); wire(); showChooser(); return; }
+  if (ok) { paintHeaderUser(); await Promise.all([loadBankMatrix(), loadModelosMatrix()]); wire(); showChooser(); return; }
   if (IS_LOCAL) { showNotice('Sesión de Prolibu no detectada', 'En local, guarda tu apiKey en localStorage["apiKey"] para probar el cotizador.', 'Ir al login de Prolibu', SIGNIN_URL); return; }
   redirectToSignin();
 }
