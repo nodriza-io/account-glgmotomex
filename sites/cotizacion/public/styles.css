@@ -1,51 +1,54 @@
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
-  background: #fff;
-  color: #121212;
+  font-family: 'Inter', "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  background: #111011;
+  color: #F2ECE0;
 }
 
 /* ============================================================================
-   CHROME NEUTRAL GLG
+   CHROME GLG · ROYAL ENFIELD (heritage industrial)
+   Tokens (--ink, --bone, --red, --brass...) se definen en el <style> inline.
    ============================================================================ */
 .glg-bar {
   display: flex; align-items: center; justify-content: space-between;
-  background: #17181c; color: #fff; padding: 12px 28px; flex-wrap: wrap; gap: 12px;
+  background: #0c0b0b; color: #F2ECE0; padding: 12px 28px; flex-wrap: wrap; gap: 12px;
+  border-bottom: 1px solid #332f2d;
 }
-.glg-logo { font-size: 22px; font-weight: 800; color: #e30613; letter-spacing: -.3px; display: flex; align-items: baseline; gap: 8px; }
-.glg-logo-sub { font-size: 12px; font-weight: 500; color: #cfcfcf; letter-spacing: .5px; }
-.glg-tabs { display: flex; gap: 8px; }
+.glg-logo { font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: .13em; font-size: 18px; font-weight: 600; color: #C42126; display: flex; align-items: baseline; gap: 8px; }
+.glg-logo-sub { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 10px; font-weight: 500; color: #B08D57; letter-spacing: .3em; }
+.glg-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
 .glg-tab {
-  border: 1px solid #3a3b40; background: transparent; color: #d5d5d5;
-  padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: 600;
-  cursor: pointer; font-family: inherit; transition: all .15s;
+  border: 1px solid #423c38; background: transparent; color: #c6bdae;
+  padding: 8px 20px; border-radius: 4px; font-family: 'Oswald', sans-serif;
+  text-transform: uppercase; letter-spacing: .08em; font-size: 13.5px; font-weight: 500;
+  cursor: pointer; transition: all .15s;
 }
-.glg-tab:hover { border-color: #6a6b70; color: #fff; }
+.glg-tab:hover { border-color: #B08D57; color: #F2ECE0; }
 .glg-tab.active { color: #fff; border-color: transparent; }
 body.skin-santander .glg-tab.active { background: #ec0000; }
 body.skin-bbva .glg-tab.active { background: #072146; }
 body.skin-banregio .glg-tab.active { background: #ff6a00; }
 
 /* Quoted vehicle banner */
-.glg-quoted { max-width: 1040px; margin: 16px auto 0; padding: 12px 18px; display: flex; align-items: center; gap: 12px; background: #eef6f0; border: 1px solid #cfe6d8; border-radius: 10px; }
-.glg-quoted-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: #2e7d4f; }
-.glg-quoted-model { font-size: 16px; font-weight: 700; color: #1a1a1a; }
-.glg-quoted-sku { font-size: 13px; color: #6b7280; }
+.glg-quoted { max-width: 1040px; margin: 16px auto 0; padding: 13px 18px; display: flex; align-items: center; gap: 14px; background: #1a1817; border: 1px solid #423c38; border-left: 3px solid #C42126; border-radius: 8px; }
+.glg-quoted-label { font-family: 'Oswald', sans-serif; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .18em; color: #B08D57; }
+.glg-quoted-model { font-size: 16px; font-weight: 700; color: #F2ECE0; }
+.glg-quoted-sku { font-size: 13px; color: #8f887c; }
 
 /* Lead block (form mode) */
 .glg-lead { max-width: 1040px; margin: 24px auto 0; padding: 0 24px; }
-.glg-lead-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: #6b7280; margin: 0 0 14px; }
+.glg-lead-title { font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .22em; color: #B08D57; margin: 0 0 14px; }
 .glg-lead-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media (max-width: 560px) { .glg-lead-grid { grid-template-columns: 1fr; } }
 .glg-inp {
-  width: 100%; border: 1px solid #dcdfe4; border-radius: 8px; padding: 12px 14px;
-  font-size: 15px; font-family: inherit; outline: none;
+  width: 100%; border: 1px solid #423c38; border-radius: 6px; padding: 12px 14px;
+  font-size: 15px; font-family: inherit; outline: none; background: #221f1e; color: #F2ECE0;
 }
-.glg-inp:focus { border-color: #17181c; }
+.glg-inp:focus { border-color: #C42126; box-shadow: 0 0 0 3px rgba(196,33,38,.18); }
 .glg-verify { margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.glg-verify-btn { background: none; border: none; color: #1973b8; font-size: 14px; font-weight: 600; cursor: pointer; padding: 0; font-family: inherit; }
-.glg-lead-status { font-size: 13px; color: #6b7280; }
+.glg-verify-btn { background: none; border: none; color: #B08D57; font-size: 14px; font-weight: 600; cursor: pointer; padding: 0; font-family: inherit; }
+.glg-lead-status { font-size: 13px; color: #8f887c; }
 
 /* ============================================================================
    SKIN: BBVA

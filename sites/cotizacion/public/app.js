@@ -87,16 +87,37 @@ async function showSuccess(title, dealId) {
   const saludo = nombre ? `Hola ${nombre},` : 'Hola,';
 
   $('modalTitle').textContent = title;
-  const wa = $('mBtnWa'), mail = $('mBtnMail'), open = $('mBtnOpen');
-  // Abrir/editar siempre disponible con el link interno; WhatsApp y correo esperan la short url.
+  const wa = $('mBtnWa'), mail = $('mBtnMail'), open = $('mBtnOpen'), copy = $('mBtnCopy');
+
+  // Abrir la cotización SIEMPRE en una pestaña nueva.
   open.href = editUrl;
-  open.onclick = e => { e.preventDefault(); goTo(editUrl); };
-  $('mBtnClose').onclick = () => { $('modal').style.display = 'none'; };
+  open.onclick = e => { e.preventDefault(); window.open(editUrl, '_blank', 'noopener'); };
+
+  // Al cerrar, dos caminos: crear una nueva cotización o editar la recién creada.
+  $('mBtnNew').onclick = () => { $('modal').style.display = 'none'; enterCreate(); };
+  $('mBtnEdit').onclick = () => { $('modal').style.display = 'none'; enterEdit(); cargarDeal(dealId); };
+
+  // Copiar el link (short url) de la propuesta. Mientras se genera, copia el largo.
+  let currentShareUrl = previewUrl;
+  copy.textContent = 'Copiar link de la propuesta'; copy.classList.remove('is-copied');
+  copy.onclick = async () => {
+    try { await navigator.clipboard.writeText(currentShareUrl); }
+    catch (e) {
+      const t = document.createElement('textarea'); t.value = currentShareUrl;
+      document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); } catch (_) { /* noop */ }
+      t.remove();
+    }
+    copy.textContent = '✓ Link copiado'; copy.classList.add('is-copied');
+    clearTimeout(copy._t); copy._t = setTimeout(() => { copy.textContent = 'Copiar link de la propuesta'; copy.classList.remove('is-copied'); }, 1800);
+  };
+
   wa.style.display = 'none'; mail.style.display = 'none';
   $('modal').style.display = 'flex';
 
-  // La short url es lo que viaja al lead (no la URL larga).
+  // La short url es lo que viaja al lead y lo que se copia.
   const shareUrl = await shortenUrl(previewUrl);
+  currentShareUrl = shareUrl;
   const msg = `${saludo} te comparto tu cotización de financiamiento GLG: ${shareUrl}`;
   if (tel) { wa.style.display = ''; wa.href = `https://wa.me/${tel}?text=${encodeURIComponent(msg)}`; }
   if (email) { mail.style.display = ''; mail.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('Tu cotización GLG')}&body=${encodeURIComponent(msg)}`; }

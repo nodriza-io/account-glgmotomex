@@ -60,8 +60,14 @@ function render(sim) {
   const financiar = (sim.precio && sim.enganche != null) ? sim.precio - sim.enganche : null;
   const row = (label, value, sub) => `<div class="rv-row"><span class="rv-k">${escHtml(label)}${sub ? `<small>${escHtml(sub)}</small>` : ''}</span><span class="rv-v">${value}</span></div>`;
 
+  // Descuento (opcional): el Site 1 guarda `precio` NETO, más `precioLista` y `descuento`.
+  const descuento = Number(sim.descuento) || 0;
+  const precioLista = Number(sim.precioLista) || sim.precio;
+  const conDescuento = descuento > 0;
+
   const rows = [];
-  if (sim.precio) rows.push(row('Precio del vehículo', money(sim.precio)));
+  if (sim.precio) rows.push(row('Precio del vehículo', money(conDescuento ? precioLista : sim.precio)));
+  if (conDescuento) rows.push(row('Descuento', `<span class="rv-desc">−${money(descuento)}</span>`));
   if (sim.enganche != null) rows.push(row('Enganche', money(sim.enganche), `${sim.enganchePct}% del precio`));
   if (financiar != null) rows.push(row('Monto a financiar', money(financiar)));
   if (sim.cxa != null) rows.push(row('Comisión por apertura', money(sim.cxa)));
@@ -82,6 +88,11 @@ function render(sim) {
     </div>`;
   }
 
+  // Nota de descuento en el hero (solo si la cotización tiene descuento aplicado).
+  const heroDescHtml = conDescuento
+    ? `<div class="rv-hero-desc">*Incluye un descuento de <strong>${money(descuento)}</strong> sobre el precio de lista</div>`
+    : '';
+
   const logoHtml = t.img
     ? `<img class="rv-logo-img" src="${t.img}" alt="${escHtml(t.name)}">`
     : `<span class="rv-logo" style="color:${t.color}">${escHtml(t.logo)}</span>`;
@@ -90,15 +101,15 @@ function render(sim) {
       ${logoHtml}
       <span class="rv-tag">Simulación de financiamiento</span>
     </div>
-    ${(sim.modelo || sim.sku) ? `<div class="rv-vehicle">
-      <span class="rv-vehicle-name">${escHtml(sim.modelo || 'Vehículo')}</span>
-      ${sim.sku ? `<span class="rv-vehicle-sku">SKU ${escHtml(sim.sku)}</span>` : ''}
+    ${sim.modelo ? `<div class="rv-vehicle">
+      <span class="rv-vehicle-name">${escHtml(sim.modelo)}</span>
     </div>` : ''}
 
     <div class="rv-hero">
       <div class="rv-hero-label">Cuota mensual</div>
       <div class="rv-cuota" style="color:${t.color}">${money(sim.cuota)}</div>
       <div class="rv-hero-sub">Tasa ${pct(sim.tasa)} anual · ${escHtml(String(sim.plazo))} meses</div>
+      ${heroDescHtml}
     </div>
 
     <div class="rv-rows">${rows.join('')}</div>
@@ -149,7 +160,8 @@ async function init() {
     const bank = BANK_THEME[pv] ? pv : 'santander';
     return render({
       banco: bank, bancoName: BANK_THEME[bank].name, modelo: 'Classic 350',
-      sku: 'pl-2025_classic-halcyon-green', precio: 114900, tasa: 0.1799, enganchePct: 20,
+      sku: 'pl-2025_classic-halcyon-green', precioLista: 119900, descuento: 5000,
+      precio: 114900, tasa: 0.1799, enganchePct: 20,
       enganche: 22980, plazo: 36, cxa: 2758, seguro: 7500, seguroVida: 1800,
       pagoInicial: 25738, cuota: 3659, total: 157462,
       retoma: { enabled: true, marca: 'Honda', modelo: 'CB 190R', kilometraje: 18500, precio: 42000, moneda: 'MXN' },
