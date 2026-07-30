@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=24">
+  <link rel="stylesheet" href="styles.css?v=27">
   <style>
     /* ============================================================
        Cotizador GLG — Estética Prolibu Suite (claro, neutral).
@@ -139,6 +139,8 @@
     .s1-btn-inline { background: var(--primary); color: #fff; border: none; border-radius: var(--radius); padding: 12px 18px; font-family: var(--bf); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .s1-btn-inline:hover { background: var(--primary-hi); }
     .s1-status { font-size: 13px; margin-top: 6px; min-height: 16px; color: var(--muted); }
+    .s1-textarea { resize: vertical; min-height: 76px; line-height: 1.5; }
+    .s1-hint { font-weight: 500; color: var(--muted); }
     .s1-product { position: relative; }
     .s1-presults { position: absolute; z-index: 5; left: 0; right: 0; top: 100%; background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--radius); margin-top: 4px; max-height: 240px; overflow-y: auto; box-shadow: 0 12px 30px rgba(0,0,0,.12); display: none; }
     .s1-presults.open { display: block; }
@@ -338,6 +340,10 @@
               <div id="pResults" class="s1-presults"></div>
             </div>
           </div>
+          <div class="s1-field" id="notaField" style="display:none;">
+            <label class="s1-lbl">Nota especial <span class="s1-hint">· aparece en la cotización del cliente</span></label>
+            <textarea id="notaEspecial" class="s1-inp s1-textarea" rows="3" placeholder="Ej. Incluye casco de regalo y primer servicio gratis."></textarea>
+          </div>
           <div class="s1-field" id="cilField" style="display:none;">
             <label class="s1-lbl">Cilindrada</label>
             <select id="cilSelect" class="s1-inp">
@@ -443,11 +449,11 @@
     </svg>
   </footer>
 
-  <script src="data.js?v=24"></script>
-  <script src="bankmatrix.js?v=24"></script>
-  <script src="engine.js?v=24"></script>
-  <script src="skins.js?v=24"></script>
-  <script src="calculator.js?v=24"></script>
-  <script src="app.js?v=24"></script>
+  <script src="data.js?v=27"></script>
+  <script src="bankmatrix.js?v=27"></script>
+  <script src="engine.js?v=27"></script>
+  <script src="skins.js?v=27"></script>
+  <script src="calculator.js?v=27"></script>
+  <script src="app.js?v=27"></script>
 </body>
 </html>

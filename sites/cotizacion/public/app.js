@@ -25,6 +25,24 @@ const escAttr = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/
 const parseMoney = s => { const n = parseFloat(String(s == null ? '' : s).replace(/[^\d.]/g, '')); return isNaN(n) ? 0 : n; };
 // Cilindrada elegida manualmente en el formulario (350/450/650); default 350.
 const getCilindrada = () => { const el = $('cilSelect'); const n = el ? parseInt(el.value, 10) : 0; return (n === 350 || n === 450 || n === 650) ? n : 350; };
+// Normaliza specialNotes/internalNotes (array de strings u objetos) a un array de textos.
+function notesArray(v) {
+  if (!v) return [];
+  const arr = Array.isArray(v) ? v : [v];
+  return arr.map(x => (typeof x === 'string' ? x : (x && (x.text || x.note || x.value || x.body)) || '')).map(s => String(s).trim()).filter(Boolean);
+}
+// Muestra el campo editable de nota especial y lo pre-llena (con la nota del producto o la guardada).
+function setNotaEspecial(notes) {
+  const fld = $('notaField'), ta = $('notaEspecial');
+  if (!fld || !ta) return;
+  ta.value = (notes && notes.length) ? notes.join('\n') : '';
+  fld.style.display = '';
+}
+// Lee lo escrito en el campo de nota como array de líneas.
+function getNotaEspecial() {
+  const ta = $('notaEspecial'); const v = (ta && ta.value || '').trim();
+  return v ? v.split(/\n+/).map(s => s.trim()).filter(Boolean) : [];
+}
 
 // ---------------- API ----------------
 function getKey() { return localStorage.getItem(KEY) || ''; }
@@ -158,6 +176,8 @@ function resetForm() {
   fillTelCodes(); if ($('cTelCode')) $('cTelCode').value = '52';
   if ($('cilField')) $('cilField').style.display = 'none';
   if ($('cilSelect')) $('cilSelect').value = '350';
+  if ($('notaEspecial')) $('notaEspecial').value = '';
+  if ($('notaField')) $('notaField').style.display = 'none';
   $('quotedBanner').style.display = 'none';
 }
 function showContactFields() { if ($('contactFields')) $('contactFields').style.display = 'block'; }
@@ -196,6 +216,7 @@ function setRetoma(ret) {
 // ---------------- Contacto ----------------
 // Busca por nombre, correo, teléfono o documento (/contact/search).
 let cliTimer = null;
+let lastClientes = []; // últimos resultados (para seleccionar el primero con Enter)
 function onClienteInput(e) {
   const term = e.target.value.trim();
   clearTimeout(cliTimer);
@@ -213,6 +234,7 @@ async function buscarCliente(term) {
   } catch (e) { renderClientes([], term); }
 }
 function renderClientes(items, term) {
+  lastClientes = items || [];
   const box = $('cResults');
   const nuevo = `<div class="s1-presult s1-presult-new" data-new="1">+ Registrar cliente nuevo<small>${escAttr(term)}</small></div>`;
   const list = items.slice(0, 8).map((c, i) => {
@@ -326,6 +348,7 @@ async function ensureContacto() {
 
 // ---------------- Producto ----------------
 let searchTimer = null;
+let lastProductos = []; // últimos resultados (para seleccionar el primero con Enter)
 function onProductInput(e) {
   const term = e.target.value.trim();
   clearTimeout(searchTimer);
@@ -357,6 +380,7 @@ function pbeName(p) { const pr = p.product || {}; return pr.productName || p.pro
 function pbeCode(p) { const pr = p.product || {}; return pr.productCode || p.productCode || p.pricebookEntryCode || ''; }
 
 function renderProductos(items) {
+  lastProductos = items || [];
   const box = $('pResults');
   if (!items.length) { box.innerHTML = '<div class="s1-presult"><small>Sin resultados.</small></div>'; box.classList.add('open'); return; }
   box.innerHTML = items.slice(0, 15).map((p, i) =>
@@ -381,10 +405,14 @@ async function seleccionarProducto(p) {
       selectedProduct.price = li.price || li.netUnitPrice || li.unitPrice || 0;
       if (!selectedProduct.productName || selectedProduct.productName === 'Producto') selectedProduct.productName = li.productName || selectedProduct.productName;
       if (!selectedProduct.productCode) selectedProduct.productCode = li.productCode || '';
+      selectedProduct.specialNotes = notesArray(li.specialNotes);
       $('pSearch').value = selectedProduct.productName;
       $('quotedModel').textContent = selectedProduct.productName;
     }
   } catch (e) { /* noop */ }
+  // Fallback: si el line item no trajo la nota, intenta con el producto poblado del buscador.
+  if (!(selectedProduct.specialNotes || []).length && p.product) selectedProduct.specialNotes = notesArray(p.product.specialNotes);
+  setNotaEspecial(selectedProduct.specialNotes); // pre-llena el campo editable con la nota del producto
   // Cilindrada MANUAL: el asesor la elige en el formulario (ya no dependemos del Sheet de clasificación).
   $('cilField').style.display = '';
   aplicarCilindrada();
@@ -492,6 +520,7 @@ async function cargarDeal(id) {
     }
     $('cilField').style.display = '';
     if ($('cilSelect')) $('cilSelect').value = String(cilindrada);
+    setNotaEspecial(notesArray(sim && sim.specialNotes)); // restaura la nota guardada en el campo editable
     const bancoKey = (sim && sim.banco) || 'bbva';
     const desc = (sim && sim.descuento) || 0;
     const dmode = (sim && sim.descuentoMode) || 'val';
@@ -515,6 +544,7 @@ async function guardarCotizacion(r, st) {
     banco: st.banco, bancoName: BANKS[st.banco].name,
     modelo: modeloNombre,
     cilindrada: st.cilindrada,
+    specialNotes: getNotaEspecial(), // lo que el asesor escribió en el campo de nota
     sku: (selectedProduct && selectedProduct.productCode) || '',
     pbeId: (selectedProduct && selectedProduct.pbeId) || null,
     precio: Math.max(0, (st.precio || 0) - (st.descuento || 0)), // NETO: lo que ve el Site 2
@@ -568,15 +598,34 @@ function wire() {
   $('chooseCrear').addEventListener('click', enterCreate);
   $('chooseEditar').addEventListener('click', enterEdit);
   $('backMenuBtn').addEventListener('click', showChooser);
+  // Cliente: buscar en vivo. Enter selecciona el primer resultado (o busca); el
+  // autocompletado del navegador (change con foco) también dispara la búsqueda.
   $('cSearch').addEventListener('input', onClienteInput);
-  $('cSearch').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); buscarCliente(); } });
+  $('cSearch').addEventListener('change', e => { if (document.activeElement === e.target && e.target.value.trim().length >= 2) buscarCliente(); });
+  $('cSearch').addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    if ($('cResults').classList.contains('open') && lastClientes.length) seleccionarContacto(lastClientes[0]);
+    else buscarCliente();
+  });
   $('cSearchBtn').addEventListener('click', () => buscarCliente());
+  // Producto: igual que cliente. Enter selecciona el primer producto (o busca).
   $('pSearch').addEventListener('input', onProductInput);
+  $('pSearch').addEventListener('change', e => { const t = e.target.value.trim(); if (document.activeElement === e.target && t.length >= 2) buscarProductos(t); });
+  $('pSearch').addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const t = $('pSearch').value.trim();
+    if ($('pResults').classList.contains('open') && lastProductos.length) seleccionarProducto(lastProductos[0]);
+    else if (t.length >= 2) buscarProductos(t);
+  });
   $('pSearch').addEventListener('focus', () => { if (!$('pSearch').value.trim()) listarProductos(); });
   $('pSearch').addEventListener('blur', () => setTimeout(() => $('pResults').classList.remove('open'), 200));
   $('cSearch').addEventListener('blur', () => setTimeout(() => $('cResults').classList.remove('open'), 200));
+  // Editar: Enter o autocompletado disparan la búsqueda de deals.
   $('editSearchBtn').addEventListener('click', buscarDeals);
-  $('editSearch').addEventListener('keydown', e => { if (e.key === 'Enter') buscarDeals(); });
+  $('editSearch').addEventListener('change', e => { if (document.activeElement === e.target && e.target.value.trim()) buscarDeals(); });
+  $('editSearch').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); buscarDeals(); } });
   $('editResults').addEventListener('click', e => { const b = e.target.closest('.glg-res'); if (b) cargarDeal(b.dataset.id); });
   const cilSel = $('cilSelect'); if (cilSel) cilSel.addEventListener('change', aplicarCilindrada);
   const rc = $('retomaCheck'); if (rc) rc.addEventListener('change', toggleRetoma);

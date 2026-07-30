@@ -47,6 +47,13 @@ function extractSim(deal) {
   return sim;
 }
 
+// Normaliza specialNotes (array de strings u objetos) a un array de textos.
+function notesArray(v) {
+  if (!v) return [];
+  const arr = Array.isArray(v) ? v : [v];
+  return arr.map(x => (typeof x === 'string' ? x : (x && (x.text || x.note || x.value || x.body)) || '')).map(s => String(s).trim()).filter(Boolean);
+}
+
 // ---------------- Render (solo lectura, con marca del banco) ----------------
 function render(sim) {
   const t = BANK_THEME[sim.banco] || BANK_THEME.bbva;
@@ -93,6 +100,18 @@ function render(sim) {
     ? `<div class="rv-hero-desc">*Incluye un descuento de <strong>${money(descuento)}</strong> sobre el precio de lista</div>`
     : '';
 
+  // Nota especial (pública) del producto, si el asesor la guardó en el Site 1.
+  const notes = notesArray(sim.specialNotes);
+  const notesHtml = notes.length
+    ? `<div class="rv-note-box" style="border-left-color:${t.color}">
+        <div class="rv-note-box-title" style="color:${t.color}">Nota</div>
+        ${notes.map(n => `<p>${escHtml(n)}</p>`).join('')}
+      </div>`
+    : '';
+  // Si hay nota o retoma, la parte superior pasa a 2 columnas (cuota | nota/retoma)
+  // para no crecer verticalmente.
+  const hasAside = !!(notesHtml || retomaHtml);
+
   const logoHtml = t.img
     ? `<img class="rv-logo-img" src="${t.img}" alt="${escHtml(t.name)}">`
     : `<span class="rv-logo" style="color:${t.color}">${escHtml(t.logo)}</span>`;
@@ -105,11 +124,14 @@ function render(sim) {
       <span class="rv-vehicle-name">${escHtml(sim.modelo)}</span>
     </div>` : ''}
 
-    <div class="rv-hero">
-      <div class="rv-hero-label">Cuota mensual</div>
-      <div class="rv-cuota" style="color:${t.color}">${money(sim.cuota)}</div>
-      <div class="rv-hero-sub">Tasa ${pct(sim.tasa)} anual · ${escHtml(String(sim.plazo))} meses</div>
-      ${heroDescHtml}
+    <div class="rv-top${hasAside ? ' rv-top-2' : ''}">
+      <div class="rv-hero">
+        <div class="rv-hero-label">Cuota mensual</div>
+        <div class="rv-cuota" style="color:${t.color}">${money(sim.cuota)}</div>
+        <div class="rv-hero-sub">Tasa ${pct(sim.tasa)} anual · ${escHtml(String(sim.plazo))} meses</div>
+        ${heroDescHtml}
+      </div>
+      ${hasAside ? `<div class="rv-aside">${notesHtml}${retomaHtml}</div>` : ''}
     </div>
 
     <div class="rv-rows">${rows.join('')}</div>
@@ -118,8 +140,6 @@ function render(sim) {
       ${row('Pago inicial', money(sim.pagoInicial), 'Enganche + comisión por apertura')}
       <div class="rv-row rv-total"><span class="rv-k">Importe total a pagar</span><span class="rv-v" style="color:${t.color}">${money(sim.total)}</span></div>
     </div>
-
-    ${retomaHtml}
 
     <p class="rv-note">Simulación informativa con ${escHtml(sim.bancoName)}. Los seguros se financian dentro de la cuota; el pago inicial (enganche + comisión) no se financia. Sujeto a aprobación de crédito.</p>
   `;
@@ -164,6 +184,7 @@ async function init() {
       precio: 114900, tasa: 0.1799, enganchePct: 20,
       enganche: 22980, plazo: 36, cxa: 2758, seguro: 7500, seguroVida: 1800,
       pagoInicial: 25738, cuota: 3659, total: 157462,
+      specialNotes: ['Incluye casco de regalo y primer servicio gratis.', 'Promoción válida hasta fin de mes.'],
       retoma: { enabled: true, marca: 'Honda', modelo: 'CB 190R', kilometraje: 18500, precio: 42000, moneda: 'MXN' },
     });
   }
