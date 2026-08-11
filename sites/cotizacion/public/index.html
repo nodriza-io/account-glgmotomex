@@ -2,12 +2,14 @@
 <html lang="es-MX">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- `viewport-fit=cover` + `env(safe-area-inset-*)` (abajo): el contenido usa
+       el ancho real del dispositivo y respeta el notch / la barra de gestos. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Cotizador — GLG Motomex · Prolibu</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=27">
+  <link rel="stylesheet" href="styles.css?v=33">
   <style>
     /* ============================================================
        Cotizador GLG — Estética Prolibu Suite (claro, neutral).
@@ -196,6 +198,57 @@
     .pl-footer { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 30px 20px 36px; }
     .pl-footer-txt { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: .01em; }
     .pl-footer-logo { height: 15px; width: auto; display: block; opacity: .92; }
+
+    /* ============================================================
+       MÓVIL
+       El layout responde al ancho REAL del viewport (media queries),
+       no a `screen.width`: en un iPhone 14 Pro `screen.width` es 393 CSS px
+       pero 1179 px físicos, y lo que importa para maquetar es el primero.
+       Ver `?debug=viewport` en app.js para inspeccionar ambos en el dispositivo.
+       ============================================================ */
+    /* El notch y la barra de gestos se respetan con las safe areas. */
+    .pl-header { padding-left: max(18px, env(safe-area-inset-left)); padding-right: max(18px, env(safe-area-inset-right)); }
+    .pl-footer { padding-bottom: calc(36px + env(safe-area-inset-bottom)); }
+
+    @media (max-width: 720px) {
+      /* Menos aire lateral: en 360px cada 24px de padding cuesta un 13% del ancho. */
+      .s1-wrap { padding: 26px 14px 8px; }
+      .s1-form, .s1-tabs, .s1-band { padding-left: 14px; padding-right: 14px; }
+      .s1-wrap, .s1-form, .s1-tabs, .s1-band {
+        padding-left: max(14px, env(safe-area-inset-left));
+        padding-right: max(14px, env(safe-area-inset-right));
+      }
+      .s1-card { padding: 18px 16px 16px; border-radius: 12px; }
+      .s1-pagehead h1 { font-size: 25px; }
+      .s1-dealtitle { font-size: 21px; }
+      .s1-choose-card { padding: 22px 20px; }
+      .s1-lbl { font-size: 13.5px; }
+      /* El input de búsqueda debe poder encoger junto al botón "Buscar". */
+      .s1-contact { gap: 8px; }
+      .s1-contact .s1-inp { min-width: 0; }
+      .s1-btn-inline { padding: 12px 14px; }
+      #skinMount:not(:empty) { margin: 16px 0 32px; border-radius: 12px; }
+      .glg-res { padding: 13px 14px; }
+      .s1-modal-card { padding: 28px 20px; }
+    }
+
+    /* Táctil (celular o tablet, a cualquier ancho): 16px es el umbral por debajo
+       del cual iOS Safari hace zoom al enfocar un campo y deja la página
+       desplazada a la derecha. Va por `pointer: coarse` y no por ancho, porque
+       un iPad de 768px sufre lo mismo que un celular de 360px. */
+    @media (pointer: coarse) {
+      .s1-inp, select.s1-inp, select.s1-prefix-sel, .s1-tg, .s1-textarea { font-size: 16px; }
+    }
+
+    /* Pantallas muy angostas (360px y menos): el botón "Buscar" baja de línea. */
+    @media (max-width: 400px) {
+      .s1-contact { flex-wrap: wrap; }
+      .s1-contact .s1-inp { flex: 1 1 100%; }
+      .s1-contact .s1-btn-inline { flex: 1 1 100%; }
+    }
+
+    /* ---- Badge de diagnóstico (?debug=viewport) ---- */
+    .s1-vp { position: fixed; left: 8px; bottom: 8px; z-index: 300; background: rgba(23,24,28,.88); color: #fff; font: 600 11px/1.45 var(--bf); padding: 7px 10px; border-radius: 8px; pointer-events: none; white-space: pre; }
   </style>
 </head>
 <body>
@@ -329,6 +382,11 @@
         <!-- MÓDULO: NEGOCIO -->
         <div class="s1-card">
           <h2 class="s1-card-title">Datos del negocio</h2>
+          <!-- Workspace destino. Oculto si el asesor tiene uno solo (el suyo). -->
+          <div class="s1-field" id="wsField" style="display:none;">
+            <label class="s1-lbl">Sucursal <span class="s1-hint">· workspace donde se crea el negocio</span></label>
+            <select id="wsSelect" class="s1-inp"></select>
+          </div>
           <div class="s1-field">
             <label class="s1-lbl">Título de la propuesta</label>
             <input id="dealTitle" class="s1-inp" placeholder="Ej. Financiamiento Meteor 350">
@@ -344,13 +402,12 @@
             <label class="s1-lbl">Nota especial <span class="s1-hint">· aparece en la cotización del cliente</span></label>
             <textarea id="notaEspecial" class="s1-inp s1-textarea" rows="3" placeholder="Ej. Incluye casco de regalo y primer servicio gratis."></textarea>
           </div>
-          <div class="s1-field" id="cilField" style="display:none;">
-            <label class="s1-lbl">Cilindrada</label>
-            <select id="cilSelect" class="s1-inp">
-              <option value="350">350 cc</option>
-              <option value="450">450 cc</option>
-              <option value="650">650 cc</option>
-            </select>
+          <div class="s1-field">
+            <label class="s1-check">
+              <input type="checkbox" id="contadoCheck">
+              <span class="s1-check-box"></span>
+              <span class="s1-check-txt">Pago de contado <span class="s1-hint">· sin financiamiento, omite la simulación de crédito</span></span>
+            </label>
           </div>
           <div class="s1-field">
             <label class="s1-check">
@@ -397,6 +454,7 @@
         <span class="glg-quoted-label">Producto</span>
         <span class="glg-quoted-model" id="quotedModel">—</span>
         <span class="glg-quoted-sku" id="quotedSku"></span>
+        <span class="glg-quoted-sku" id="quotedCil"></span>
       </div>
     </div>
 
@@ -449,11 +507,11 @@
     </svg>
   </footer>
 
-  <script src="data.js?v=27"></script>
-  <script src="bankmatrix.js?v=27"></script>
-  <script src="engine.js?v=27"></script>
-  <script src="skins.js?v=27"></script>
-  <script src="calculator.js?v=27"></script>
-  <script src="app.js?v=27"></script>
+  <script src="data.js?v=33"></script>
+  <script src="bankmatrix.js?v=33"></script>
+  <script src="engine.js?v=33"></script>
+  <script src="skins.js?v=33"></script>
+  <script src="calculator.js?v=33"></script>
+  <script src="app.js?v=33"></script>
 </body>
 </html>

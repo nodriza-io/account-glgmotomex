@@ -1,19 +1,33 @@
 /* ============================================================
    Site 2 — Visor de simulación de crédito (GLG). SOLO LECTURA.
-   Estética con la marca del banco (color via --bank).
+   Estética con la marca del banco (color via --bank) para los planes de
+   crédito; estética de marca Royal Enfield (negro + rojo) para "pago de
+   contado" (body.skin-contado), que no tiene banco que mostrar.
    ============================================================ */
 * { box-sizing: border-box; }
+/* html/body ocupan EXACTAMENTE el tamaño del iframe que los embebe (nunca más
+   grande) y no generan su propio scroll — si algo se pasa, se contiene y
+   scrollea adentro de .rv-wrap, no en la página/iframe entero. */
+html, body { height: 100%; overflow: hidden; }
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
   color: #1a1a1a; background: #fff;
   --bank: #072146;
+  height: 100%;
+  display: flex; align-items: center; justify-content: center;
 }
-.rv-wrap { max-width: 640px; margin: 0 auto; padding: 18px 18px 24px; }
+/* La "hoja" es el 100% del contenedor (iframe/panel) que la embeba, sea cual
+   sea su tamaño real; el contenido se centra vertical y horizontalmente
+   adentro, sin tarjeta ni sombra flotando en una esquina. */
+.rv-wrap {
+  width: 100%; height: 100%; max-width: 640px; margin: 0 auto; padding: 32px 22px;
+  overflow: auto; display: flex; flex-direction: column; justify-content: center;
+}
 .rv-state { text-align: center; padding: 44px 20px; color: #9aa0a6; font-size: 14.5px; }
 
-/* Marca del banco */
+/* Marca del banco (planes de crédito) */
 .rv-brand { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 9px; margin-bottom: 12px; border-bottom: 2px solid var(--bank); }
 .rv-logo { font-size: 23px; font-weight: 800; letter-spacing: -.3px; }
 .rv-logo-img { height: 26px; width: auto; display: block; }
@@ -24,20 +38,23 @@ body {
 .rv-vehicle-name { font-size: 16.5px; font-weight: 800; color: #17181c; }
 .rv-vehicle-sku { font-size: 12px; color: #8a9099; }
 
-/* Hero: cuota mensual */
+/* Hero: cuota mensual / total */
 .rv-hero { background: #f6f7f8; border-radius: 12px; padding: 15px 20px; margin-bottom: 14px; }
 .rv-hero-label { font-size: 13px; color: #6b7280; }
 .rv-cuota { font-size: 24px; font-weight: 800; letter-spacing: -.4px; line-height: 1.1; margin: 2px 0 4px; }
 .rv-hero-sub { font-size: 13px; color: #6b7280; }
-.rv-hero-desc { margin-top: 7px; font-size: 11.5px; font-style: italic; font-weight: 600; color: #1a8a4a; line-height: 1.35; }
-.rv-hero-desc strong { font-weight: 800; font-style: normal; }
 
-/* Parte superior en 2 columnas cuando hay nota o retoma (para no crecer vertical) */
-.rv-top-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: stretch; margin-bottom: 14px; }
-.rv-top-2 .rv-hero { margin-bottom: 0; height: 100%; }
-.rv-aside { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.rv-aside > * { margin-top: 0; }
-@media (max-width: 520px) { .rv-top-2 { grid-template-columns: 1fr; } }
+/* Nota especial: texto dentro del recuadro de la cuota, a la derecha */
+.rv-hero-2 { display: flex; gap: 18px; }
+.rv-hero-main { flex: 0 0 auto; }
+.rv-hero-note { flex: 1; min-width: 0; padding-left: 18px; border-left: 1px solid #e4e6e9; }
+.rv-hero-note-title { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #8a9099; margin-bottom: 3px; }
+.rv-hero-note p { margin: 0 0 3px; font-size: 11.5px; color: #4b5563; line-height: 1.5; overflow-wrap: anywhere; }
+.rv-hero-note p:last-child { margin-bottom: 0; }
+@media (max-width: 520px) {
+  .rv-hero-2 { flex-direction: column; gap: 12px; }
+  .rv-hero-note { border-left: none; padding-left: 0; border-top: 1px solid #e4e6e9; padding-top: 12px; }
+}
 
 /* Filas de detalle — 2 columnas para compactar sin cambiar el estilo de cada fila */
 .rv-rows { display: grid; grid-template-columns: 1fr 1fr; column-gap: 26px; align-items: stretch; }
@@ -54,12 +71,6 @@ body {
 /* Descuento (fila de detalle) */
 .rv-desc { color: #1a8a4a; font-weight: 700; white-space: nowrap; }
 
-/* Nota especial (pública) del producto */
-.rv-note-box { margin-top: 14px; padding: 12px 14px; background: #f6f7f8; border: 1px solid #e7e9ec; border-left: 3px solid var(--bank); border-radius: 8px; }
-.rv-note-box-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px; }
-.rv-note-box p { margin: 0 0 5px; font-size: 13px; color: #444; line-height: 1.5; }
-.rv-note-box p:last-child { margin-bottom: 0; }
-
 /* Disclaimer de vehículo de retoma (parte de pago) */
 .rv-retoma { display: flex; align-items: flex-start; gap: 11px; margin-top: 14px; padding: 12px 14px; background: #f8f9fa; border-left: 3px solid var(--bank); border-radius: 8px; }
 .rv-retoma-ic { flex: none; width: 22px; height: 22px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-size: 14px; font-weight: 700; line-height: 1; margin-top: 1px; }
@@ -72,4 +83,61 @@ body {
 @media (max-width: 470px) {
   .rv-rows { grid-template-columns: 1fr; column-gap: 0; }
   .rv-cuota { font-size: 22px; }
+}
+
+/* ============================================================
+   PAGO DE CONTADO — identidad Royal Enfield (negro puro + rojo,
+   contraste blanco). Sin banco, sin sombras. El tamaño lo resuelve el
+   layout de arriba (html/body/.rv-wrap a 100%, sin scroll de página);
+   acá no hay que achicar tipografía para "que entre".
+   ============================================================ */
+body.skin-contado {
+  background: #000;
+  color: #fff;
+}
+/* Ocupa TODO el panel: sin max-width que deje franjas negras muertas a los
+   lados, sin scroll propio (los espaciados de abajo son relativos a la altura
+   del iframe con clamp(min, Nvh, max), así el bloque siempre entra) y con el
+   contenido centrado vertical y horizontalmente en el alto disponible. */
+body.skin-contado .rv-wrap {
+  max-width: none;
+  padding: clamp(16px, 4vh, 32px) clamp(20px, 4.5vw, 48px);
+  overflow: hidden;
+}
+
+.re-eyebrow { font: 700 11px/1 'Inter', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #9a9a9a; }
+.re-brand-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: clamp(12px, 2.6vh, 22px); }
+.re-wordmark { font: 400 30px/1 'Bebas Neue', 'Inter', sans-serif; letter-spacing: .03em; color: #e2231a; }
+.re-wordmark small { display: block; font: 700 10.5px/1 'Inter', sans-serif; letter-spacing: .18em; text-transform: uppercase; color: #9a9a9a; margin-top: 6px; }
+.re-tag { flex: none; font: 700 11px/1 'Inter', sans-serif; letter-spacing: .07em; text-transform: uppercase; color: #fff; background: #e2231a; padding: 7px 12px; border-radius: 999px; white-space: nowrap; margin-top: 3px; }
+.re-rule { height: 2px; background: linear-gradient(90deg, #e2231a, rgba(226,35,26,0)); margin-bottom: clamp(14px, 3vh, 26px); }
+
+.re-vehicle { font: 700 13px/1 'Inter', sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #d0d0d0; margin-bottom: clamp(10px, 2vh, 18px); }
+
+.re-hero { text-align: left; margin-bottom: clamp(14px, 3.2vh, 28px); }
+.re-hero-label { font: 700 11.5px/1 'Inter', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #9a9a9a; margin-bottom: 6px; }
+.re-total { font: 400 clamp(36px, min(10vw, 11vh), 64px)/1 'Bebas Neue', 'Inter', sans-serif; letter-spacing: .01em; color: #fff; }
+.re-sub { font: 500 13px/1.4 'Inter', sans-serif; color: #b0b0b0; margin-top: 8px; }
+
+.re-note { border: 1px solid rgba(255,255,255,.16); border-radius: 10px; padding: clamp(9px, 2vh, 12px) 14px; margin-bottom: clamp(12px, 2.8vh, 24px); }
+.re-note-title { display: block; font: 700 10.5px/1 'Inter', sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #e2231a; margin-bottom: 5px; }
+.re-note p { margin: 0 0 3px; font-size: 12.5px; color: #d0d0d0; line-height: 1.5; }
+.re-note p:last-child { margin-bottom: 0; }
+
+.re-rows { display: flex; flex-direction: column; }
+.re-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: clamp(7px, 1.4vh, 11px) 0; border-bottom: 1px solid rgba(255,255,255,.14); font: 500 14px/1.3 'Inter', sans-serif; color: #d0d0d0; }
+.re-row-k small { display: block; font-size: 11.5px; color: #9a9a9a; margin-top: 2px; }
+.re-row-v { font-weight: 700; color: #fff; white-space: nowrap; }
+.re-row-v.is-credit { color: #4ade80; }
+
+.re-total-row { border-bottom: none; border-top: 2px solid rgba(255,255,255,.24); margin-top: 4px; padding-top: clamp(10px, 2.2vh, 16px); }
+.re-total-row .re-row-k { font: 700 14px/1 'Inter', sans-serif; color: #fff; text-transform: uppercase; letter-spacing: .04em; }
+.re-total-row .re-row-v { font: 400 26px/1 'Bebas Neue', 'Inter', sans-serif; color: #e2231a; letter-spacing: .01em; }
+
+.re-foot { font-size: 11.5px; color: #8a8a8a; line-height: 1.55; margin-top: clamp(12px, 2.5vh, 22px); }
+
+@media (max-width: 480px) {
+  .re-wordmark { font-size: 25px; }
+  .re-total { font-size: clamp(32px, 11vh, 40px); }
+  .re-total-row .re-row-v { font-size: 22px; }
 }

@@ -19,12 +19,19 @@ let editMode = false;
 let contactId = null;
 let selectedProduct = null; // {pbeId, productCode, productName, price}
 const state = { dealId: null, dealCode: null };
+// Workspace (sucursal) del asesor logueado: define dónde nacen el negocio y el contacto.
+const ws = { primary: null, options: [] }; // primary: {id, name}; options: [{id, name}]
 
 const escAttr = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 // Convierte un texto con separadores/moneda a número (para precios de retoma, etc.).
 const parseMoney = s => { const n = parseFloat(String(s == null ? '' : s).replace(/[^\d.]/g, '')); return isNaN(n) ? 0 : n; };
-// Cilindrada elegida manualmente en el formulario (350/450/650); default 350.
-const getCilindrada = () => { const el = $('cilSelect'); const n = el ? parseInt(el.value, 10) : 0; return (n === 350 || n === 450 || n === 650) ? n : 350; };
+// Lee product.customFields.cilindrada (fuente de verdad). Devuelve null si el
+// producto no trae el campo o el valor no es una cilindrada válida.
+function cilindradaFromProduct(product) {
+  const cf = product && product.customFields;
+  const n = cf && parseInt(cf.cilindrada, 10);
+  return (n === 350 || n === 450 || n === 650) ? n : null;
+}
 // Normaliza specialNotes/internalNotes (array de strings u objetos) a un array de textos.
 function notesArray(v) {
   if (!v) return [];
@@ -61,10 +68,54 @@ async function validateSession() {
     const p = me.profile || me;
     const name = [p.firstName, p.lastName].filter(Boolean).join(' ') || p.email || 'Usuario';
     ['userName', 'userNameC'].forEach(id => { if ($(id)) $(id).textContent = name; });
+    readWorkspaces(p);
     sessionStorage.removeItem('glg_auth_redirected');
     return true;
   } catch (e) { return false; }
 }
+// ---------------- Workspace (sucursal) del asesor ----------------
+// `primaryWorkspace` / `sharedWorkspaces` / `selectableWorkspaces` pueden venir
+// como id suelto o como objeto poblado: se normalizan a {id, name}.
+function normWs(w) {
+  if (!w) return null;
+  if (typeof w === 'string') return { id: w, name: '' };
+  const id = w._id || w.id; if (!id) return null;
+  return { id, name: w.workspaceName || w.workspaceCode || '' };
+}
+function readWorkspaces(p) {
+  ws.primary = normWs(p.primaryWorkspace);
+  // El asesor puede elegir entre su workspace primario + los seleccionables/compartidos.
+  const all = [ws.primary]
+    .concat((p.selectableWorkspaces || []).map(normWs))
+    .concat((p.sharedWorkspaces || []).map(normWs))
+    .filter(Boolean);
+  const seen = new Set();
+  ws.options = all.filter(w => (seen.has(w.id) ? false : seen.add(w.id)));
+  paintWorkspace();
+}
+// El workspace elegido para este negocio (el selector si está visible, si no el primario).
+function getWorkspaceId() {
+  const sel = $('wsSelect');
+  if (sel && $('wsField') && $('wsField').style.display !== 'none' && sel.value) return sel.value;
+  return (ws.primary && ws.primary.id) || null;
+}
+// Pinta el nombre de la sucursal en el header y, si hay más de una, el selector.
+function paintWorkspace() {
+  const chip = document.querySelector('.pl-workspace');
+  if (chip && ws.primary && ws.primary.name) chip.textContent = ws.primary.name;
+  const fld = $('wsField'), sel = $('wsSelect');
+  if (!fld || !sel) return;
+  if (ws.options.length < 2) { fld.style.display = 'none'; return; }
+  sel.innerHTML = '';
+  ws.options.forEach(w => {
+    const o = document.createElement('option');
+    o.value = w.id; o.textContent = w.name || w.id;
+    sel.appendChild(o);
+  });
+  if (ws.primary) sel.value = ws.primary.id;
+  fld.style.display = '';
+}
+
 function redirectToSignin() {
   if (sessionStorage.getItem('glg_auth_redirected')) {
     showNotice('No pudimos validar tu sesión', 'Inicia sesión en Prolibu y vuelve a abrir el cotizador.', 'Ir al login de Prolibu', SIGNIN_URL);
@@ -172,21 +223,36 @@ function resetForm() {
   ['cStatus', 'editStatus'].forEach(id => { if ($(id)) $(id).textContent = ''; });
   ['editResults', 'cResults'].forEach(id => { if ($(id)) $(id).innerHTML = ''; });
   if ($('contactFields')) $('contactFields').style.display = 'none';
+  if ($('contadoCheck')) $('contadoCheck').checked = false;
+  Calc.setContado(false); // vuelve a modo crédito por defecto
   setRetoma(null); // limpia y oculta el módulo de vehículo de retoma
   fillTelCodes(); if ($('cTelCode')) $('cTelCode').value = '52';
-  if ($('cilField')) $('cilField').style.display = 'none';
-  if ($('cilSelect')) $('cilSelect').value = '350';
   if ($('notaEspecial')) $('notaEspecial').value = '';
   if ($('notaField')) $('notaField').style.display = 'none';
+  if ($('wsSelect') && ws.primary) $('wsSelect').value = ws.primary.id; // vuelve a la sucursal del asesor
   $('quotedBanner').style.display = 'none';
 }
 function showContactFields() { if ($('contactFields')) $('contactFields').style.display = 'block'; }
 // Paso a paso: el formulario y la calculadora se muestran cuando corresponde.
 function showMainCard(v) { const el = $('dealForm'); if (el) el.style.display = v ? '' : 'none'; }
-function showCalc(v) { ['bankTabs', 'skinMount'].forEach(id => { const el = $(id); if (el) el.style.display = v ? '' : 'none'; }); }
+// El switcher de bancos solo se muestra cuando la calculadora está visible Y
+// no estamos en modo contado (que no usa banco).
+function showCalc(v) {
+  const contado = $('contadoCheck') && $('contadoCheck').checked;
+  if ($('skinMount')) $('skinMount').style.display = v ? '' : 'none';
+  if ($('bankTabs')) $('bankTabs').style.display = (v && !contado) ? '' : 'none';
+}
+
+// ---------------- Pago de contado (omite la simulación de crédito) ----------------
+function toggleContado() {
+  const on = $('contadoCheck') && $('contadoCheck').checked;
+  Calc.setContado(on);
+  const visible = $('skinMount') && $('skinMount').style.display !== 'none';
+  showCalc(visible); // re-evalúa la visibilidad de #bankTabs con el nuevo estado de contado
+}
 
 // ---------------- Vehículo de retoma (parte de pago) ----------------
-function toggleRetoma() { const on = $('retomaCheck') && $('retomaCheck').checked; if ($('retomaModule')) $('retomaModule').style.display = on ? '' : 'none'; }
+function toggleRetoma() { const on = $('retomaCheck') && $('retomaCheck').checked; if ($('retomaModule')) $('retomaModule').style.display = on ? '' : 'none'; syncRetomaMonto(); }
 // Devuelve el objeto de retoma para el sim (o null si el check está apagado / sin datos).
 function getRetoma() {
   if (!$('retomaCheck') || !$('retomaCheck').checked) return null;
@@ -201,6 +267,11 @@ function getRetoma() {
     precio, moneda: ($('rMoneda').value || 'MXN'),
   };
 }
+// Sincroniza el valor de la retoma con la calculadora: en modo contado se resta
+// del total. Se asume siempre en pesos mexicanos (no se hace conversión de
+// divisa aunque el campo de retoma permita registrar USD como referencia).
+// Se llama cada vez que cambian los campos de retoma.
+function syncRetomaMonto() { const ret = getRetoma(); Calc.setRetomaMonto(ret ? ret.precio : 0); }
 // Restaura el módulo de retoma desde el sim (modo editar) o lo limpia (null).
 function setRetoma(ret) {
   const on = !!(ret && ret.enabled);
@@ -211,6 +282,7 @@ function setRetoma(ret) {
   if ($('rKm')) $('rKm').value = on && ret.kilometraje ? Number(ret.kilometraje).toLocaleString('es-MX') : '';
   if ($('rPrecio')) $('rPrecio').value = on && ret.precio ? Math.round(ret.precio).toLocaleString('es-MX') : '';
   if ($('rMoneda')) $('rMoneda').value = (on && ret.moneda) || 'MXN';
+  syncRetomaMonto();
 }
 
 // ---------------- Contacto ----------------
@@ -341,6 +413,9 @@ async function ensureContacto() {
   const body = { firstName: $('cNombre').value.trim(), lastName: $('cApellido').value.trim(), email, mobile: getMobile() };
   const docType = $('cDocType').value.trim(), docId = $('cDocId').value.trim();
   if (docType || docId) body.identification = { docType, docId };
+  // El contacto nace en la misma sucursal que el negocio.
+  const wsId = getWorkspaceId();
+  if (wsId) body.workspace = wsId;
   const res = await api('/contact/', { method: 'POST', body: JSON.stringify(body) });
   if (res.status >= 400) { const e = await res.json().catch(() => ({})); throw new Error('Contacto: ' + (e.message || res.status)); }
   const c = await res.json(); contactId = c._id || c.id; return contactId;
@@ -413,15 +488,30 @@ async function seleccionarProducto(p) {
   // Fallback: si el line item no trajo la nota, intenta con el producto poblado del buscador.
   if (!(selectedProduct.specialNotes || []).length && p.product) selectedProduct.specialNotes = notesArray(p.product.specialNotes);
   setNotaEspecial(selectedProduct.specialNotes); // pre-llena el campo editable con la nota del producto
-  // Cilindrada MANUAL: el asesor la elige en el formulario (ya no dependemos del Sheet de clasificación).
-  $('cilField').style.display = '';
+
+  // Cilindrada: se lee del custom field del producto (fuente de verdad), no de
+  // una selección manual por defecto. Si el resultado de búsqueda no trajo el
+  // producto poblado, se pide explícito; si el producto aún no tiene el campo
+  // cargado, cae a la clasificación por SKU/nombre como último recurso.
+  let cil = cilindradaFromProduct(p.product);
+  if (cil == null) {
+    try {
+      const full = await (await api(`/pricebookentry/${p._id}?populate=product`)).json();
+      cil = cilindradaFromProduct(full && full.product);
+    } catch (e) { /* noop */ }
+  }
+  if (cil == null) cil = cilindradaDeSku(selectedProduct.productCode, selectedProduct.productName);
+  selectedProduct.cilindrada = cil || 350;
+  if ($('quotedCil')) $('quotedCil').textContent = `${selectedProduct.cilindrada} cc`;
+
   aplicarCilindrada();
 }
 
-// Monta/actualiza la calculadora con la cilindrada elegida y el producto seleccionado.
+// Monta/actualiza la calculadora con la cilindrada del producto seleccionado
+// (leída de su custom field, sin selección manual — ver seleccionarProducto).
 function aplicarCilindrada() {
   if (!selectedProduct) return;
-  const cil = getCilindrada();
+  const cil = selectedProduct.cilindrada || 350;
   // Si el pricebook trae un precio placeholder (muy bajo), usa el precio indicativo por cilindrada.
   if (!selectedProduct.price || selectedProduct.price < 1000) selectedProduct.price = PRECIO_DEFAULT[cil] || selectedProduct.price;
   Calc.setVehicle({ cilindrada: cil, precio: selectedProduct.price || PRECIO_DEFAULT[cil], nombre: selectedProduct.productName, locked: true });
@@ -512,21 +602,26 @@ async function cargarDeal(id) {
     // Cilindrada: la guardada en el sim; fallback a la clasificación vieja o 350 (deals antiguos).
     const cilindrada = (sim && sim.cilindrada) || cilindradaDeSku(sku, nombre) || 350;
     if ((!precio || precio <= 0)) precio = (PRECIO_DEFAULT && PRECIO_DEFAULT[cilindrada]) || 0;
-    if (pbeId) selectedProduct = { pbeId: (typeof pbeId === 'object' ? pbeId._id : pbeId), productCode: sku || '', productName: nombre || 'Producto', price: precio };
+    if (pbeId) selectedProduct = { pbeId: (typeof pbeId === 'object' ? pbeId._id : pbeId), productCode: sku || '', productName: nombre || 'Producto', price: precio, cilindrada };
     if (nombre) {
       $('quotedModel').textContent = nombre || '';
       $('quotedSku').textContent = sku ? `SKU ${sku}` : '';
+      if ($('quotedCil')) $('quotedCil').textContent = `${cilindrada} cc`;
       $('quotedBanner').style.display = 'flex';
     }
-    $('cilField').style.display = '';
-    if ($('cilSelect')) $('cilSelect').value = String(cilindrada);
     setNotaEspecial(notesArray(sim && sim.specialNotes)); // restaura la nota guardada en el campo editable
     const bancoKey = (sim && sim.banco) || 'bbva';
     const desc = (sim && sim.descuento) || 0;
     const dmode = (sim && sim.descuentoMode) || 'val';
+    const esContado = !!(sim && sim.contado);
+    if ($('contadoCheck')) $('contadoCheck').checked = esContado;
     // El descuento (monto + modo) se restaura dentro de la calculadora al montar el skin.
-    Calc.loadQuote({ cilindrada, precio, nombre: nombre, banco: bancoKey, enganchePct: sim && sim.enganchePct, plazo: sim && sim.plazo, descuento: desc, descMode: dmode, locked: !!nombre });
-    setRetoma(sim && sim.retoma); // restaura el módulo de vehículo de retoma si existe
+    Calc.loadQuote({
+      cilindrada, precio, nombre: nombre, banco: bancoKey,
+      enganchePct: sim && sim.enganchePct, engancheMode: sim && sim.engancheMode, enganche: sim && sim.enganche,
+      plazo: sim && sim.plazo, descuento: desc, descMode: dmode, locked: !!nombre, contado: esContado,
+    });
+    setRetoma(sim && sim.retoma); // restaura el módulo de vehículo de retoma si existe (y sincroniza el total de contado)
     $('editResults').innerHTML = ''; // al elegir una, se ocultan las demás respuestas de la búsqueda
     $('editSearch').value = (deal.proposal && deal.proposal.title) || deal.dealName || $('editSearch').value;
     showMainCard(true); showCalc(true); // recién ahora se muestra el formulario + calculadora
@@ -538,10 +633,11 @@ async function cargarDeal(id) {
 // ---------------- Guardar (crear POST / editar PATCH) ----------------
 async function guardarCotizacion(r, st) {
   const modeloNombre = (selectedProduct && selectedProduct.productName) || st.modelo;
-  const title = $('dealTitle').value.trim() || `Financiamiento ${modeloNombre}`;
+  const title = $('dealTitle').value.trim() || (st.contado ? `Contado ${modeloNombre}` : `Financiamiento ${modeloNombre}`);
   // TODA la simulación se guarda en UN solo custom field (JSON). El Site 2 lo lee y lo interpreta.
-  const sim = {
-    banco: st.banco, bancoName: BANKS[st.banco].name,
+  // Campos comunes a ambos modos (crédito y contado): el descuento sigue disponible en los dos.
+  const simBase = {
+    contado: !!st.contado,
     modelo: modeloNombre,
     cilindrada: st.cilindrada,
     specialNotes: getNotaEspecial(), // lo que el asesor escribió en el campo de nota
@@ -550,11 +646,18 @@ async function guardarCotizacion(r, st) {
     precio: Math.max(0, (st.precio || 0) - (st.descuento || 0)), // NETO: lo que ve el Site 2
     precioLista: st.precio, descuento: st.descuento || 0,         // interno: el Site 2 no lo muestra
     descuentoMode: st.descMode || 'val', descuentoInput: st.descInput || 0,
-    tasa: r.tasa, enganchePct: st.enganchePct, enganche: r.enganche, financiar: r.financiar,
-    plazo: st.plazo, cxa: r.cxaMonto, seguro: r.seguro, seguroVida: r.seguroVida,
-    pagoInicial: r.pagoInicial, cuota: r.cuota, total: r.totalPagar,
-    retoma: getRetoma(), // vehículo en parte de pago (el Site 2 muestra un disclaimer si existe)
+    retoma: getRetoma(), // vehículo en parte de pago (en contado se resta del total; en crédito es solo disclaimer)
   };
+  const sim = st.contado
+    ? Object.assign({}, simBase, { total: r.total }) // sin banco/tasa/plazo/cuota
+    : Object.assign({}, simBase, {
+      banco: st.banco, bancoName: BANKS[st.banco].name,
+      // enganchePct se guarda redondeado al entero (solo para mostrar en el Site 2);
+      // el cálculo (tasa, enganche, cuota) ya se hizo con el % preciso, sin perder exactitud.
+      tasa: r.tasa, enganchePct: Math.round(st.enganchePct), engancheMode: st.engancheMode, enganche: r.enganche, financiar: r.financiar,
+      plazo: st.plazo, cxa: r.cxaMonto, seguro: r.seguro, seguroVida: r.seguroVida,
+      pagoInicial: r.pagoInicial, cuota: r.cuota, total: r.totalPagar,
+    });
   const customFields = { simulacionCredito: JSON.stringify(sim) };
   try {
     let quote = null;
@@ -584,6 +687,11 @@ async function guardarCotizacion(r, st) {
     if (!selectedProduct || !selectedProduct.pbeId) throw new Error('Selecciona un producto del buscador para cotizar.');
     const cid = await ensureContacto();
     const payload = { dealName: title, contact: cid, proposal, customFields };
+    // El negocio se crea en la sucursal (workspace) del asesor que cotiza. Sin este
+    // campo la plataforma sólo hereda el `primaryWorkspace` del creador si lo tiene
+    // configurado; enviándolo explícito el destino nunca queda al azar.
+    const wsId = getWorkspaceId();
+    if (wsId) payload.workspace = wsId;
     const res = await api('/deal/', { method: 'POST', body: JSON.stringify(payload) });
     if (res.status >= 400) { const e = await res.json().catch(() => ({})); throw new Error(e.message || 'Error ' + res.status); }
     const deal = await res.json();
@@ -627,9 +735,13 @@ function wire() {
   $('editSearch').addEventListener('change', e => { if (document.activeElement === e.target && e.target.value.trim()) buscarDeals(); });
   $('editSearch').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); buscarDeals(); } });
   $('editResults').addEventListener('click', e => { const b = e.target.closest('.glg-res'); if (b) cargarDeal(b.dataset.id); });
-  const cilSel = $('cilSelect'); if (cilSel) cilSel.addEventListener('change', aplicarCilindrada);
+  const cc = $('contadoCheck'); if (cc) cc.addEventListener('change', toggleContado);
   const rc = $('retomaCheck'); if (rc) rc.addEventListener('change', toggleRetoma);
-  const rp = $('rPrecio'); if (rp) rp.addEventListener('blur', e => { const v = parseMoney(e.target.value); e.target.value = v ? v.toLocaleString('es-MX') : ''; });
+  const rp = $('rPrecio');
+  if (rp) {
+    rp.addEventListener('input', syncRetomaMonto); // total de contado se actualiza en vivo
+    rp.addEventListener('blur', e => { const v = parseMoney(e.target.value); e.target.value = v ? v.toLocaleString('es-MX') : ''; syncRetomaMonto(); });
+  }
   const rk = $('rKm'); if (rk) rk.addEventListener('blur', e => { const v = parseInt(String(e.target.value).replace(/[^\d]/g, ''), 10); e.target.value = v ? v.toLocaleString('es-MX') : ''; });
 }
 
@@ -656,7 +768,31 @@ function paintHeaderUser() {
   } catch (e) { /* noop */ }
 }
 
+// Badge de diagnóstico: abrí el site con `?debug=viewport` desde el celular del
+// asesor y muestra la resolución REAL con la que se está maquetando.
+// - viewport  = px CSS disponibles → es lo que gobierna las media queries.
+// - pantalla  = px CSS del dispositivo (screen.width/height).
+// - DPR       = píxeles físicos por px CSS (un iPhone 14 Pro: 393 CSS × 3 = 1179 reales).
+function mountViewportBadge() {
+  if (!/[?&]debug=viewport/.test(window.location.search)) return;
+  const el = document.createElement('div');
+  el.className = 's1-vp';
+  const paint = () => {
+    el.textContent = [
+      `viewport  ${window.innerWidth} × ${window.innerHeight}`,
+      `pantalla  ${screen.width} × ${screen.height}`,
+      `DPR       ${window.devicePixelRatio} → ${Math.round(window.innerWidth * window.devicePixelRatio)}px reales`,
+      `UA        ${/Mobi|Android/i.test(navigator.userAgent) ? 'móvil' : 'escritorio'}`,
+    ].join('\n');
+  };
+  paint();
+  window.addEventListener('resize', paint);
+  window.addEventListener('orientationchange', () => setTimeout(paint, 250));
+  document.body.appendChild(el);
+}
+
 async function boot() {
+  mountViewportBadge();
   const ok = await validateSession();
   if (ok) { paintHeaderUser(); await Promise.all([loadBankMatrix(), loadModelosMatrix()]); wire(); showChooser(); return; }
   if (IS_LOCAL) { showNotice('Sesión de Prolibu no detectada', 'En local, guarda tu apiKey en localStorage["apiKey"] para probar el cotizador.', 'Ir al login de Prolibu', SIGNIN_URL); return; }

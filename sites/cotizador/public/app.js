@@ -22,13 +22,22 @@ const pct = v => { const x = Number(v) || 0; return (x <= 1 ? x * 100 : x).toFix
 const escHtml = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 // ---------------- Obtener el Deal ----------------
+// Intenta primero el patrón conocido de la vista pública (/view/deal/<id>/<contactId>);
+// si el host que embebe el site es otra pantalla (p. ej. el Edit interno, con una URL
+// distinta), cae a tomar el/los primeros ids de 24 hex que aparezcan en la URL —
+// el propio deal (y, si hay un segundo, el contacto).
 function parseDealUrl() {
   let url = document.referrer || window.location.href;
   try { if (window.parent !== window && window.parent.location.href) url = window.parent.location.href; } catch (e) { /* cross-origin */ }
-  const m = url.match(/\/(?:ui\/spa\/)?view\/deal\/([a-f0-9]{24})\/([a-f0-9]{24}|none)/i);
-  if (!m) return null;
-  const origin = new URL(url).origin;
-  return { jsonUrl: `${origin}/view/deal/${m[1]}/${m[2]}/?format=json` };
+  let origin;
+  try { origin = new URL(url).origin; } catch (e) { return null; }
+  const strict = url.match(/\/(?:ui\/spa\/)?view\/deal\/([a-f0-9]{24})\/([a-f0-9]{24}|none)/i);
+  if (strict) return { jsonUrl: `${origin}/view/deal/${strict[1]}/${strict[2]}/?format=json` };
+  const ids = url.match(/[a-f0-9]{24}/gi);
+  if (!ids || !ids.length) return null;
+  const dealId = ids[0];
+  const contactId = ids[1] || 'none';
+  return { jsonUrl: `${origin}/view/deal/${dealId}/${contactId}/?format=json` };
 }
 async function fetchDeal(jsonUrl) {
   const r = await fetch(jsonUrl, { headers: { Accept: 'application/json' }, credentials: 'include' });
@@ -42,7 +51,9 @@ function extractSim(deal) {
   if (!raw) return null;
   let sim;
   try { sim = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (e) { return null; }
-  if (!sim || !sim.banco) return null;
+  if (!sim) return null;
+  if (sim.contado) return sim; // pago de contado: no requiere banco
+  if (!sim.banco) return null;
   if (!BANK_THEME[sim.banco]) sim.banco = BANK_KEY_BY_NAME[sim.bancoName] || 'bbva';
   return sim;
 }
@@ -54,11 +65,115 @@ function notesArray(v) {
   return arr.map(x => (typeof x === 'string' ? x : (x && (x.text || x.note || x.value || x.body)) || '')).map(s => String(s).trim()).filter(Boolean);
 }
 
+// ---------------- Ajuste al panel anfitrión (visor de propuestas) ----------------
+// El site se embebe en un iframe cuyo alto lo fija la plantilla de la propuesta
+// (p. ej. 592px) dentro de una "página" que puede ser más alta (612px): eso deja
+// una franja del fondo de la página asomando abajo, y el contenido queda
+// centrado respecto del iframe y no de la página. Como el visor es del mismo
+// origen, estiramos nuestro propio contenedor (que está posicionado en
+// absoluto) para cubrir la página completa; en el skin de contado además
+// pintamos la página de negro para que no asome blanco por ningún borde.
+// Si el embebido es de otro origen, frameElement es null (o tira SecurityError)
+// y no hacemos nada: manda el layout del host.
+function fitToHostPage(dark) {
+  let frame;
+  try { frame = window.frameElement; } catch (e) { return; }
+  if (!frame) return;
+
+  // Subir por el DOM cruzando los límites de shadow DOM hasta la "página".
+  let page = null;
+  for (let n = frame; n; n = n.parentElement || (n.parentNode && n.parentNode.host) || null) {
+    if (n.classList && n.classList.contains('page')) { page = n; break; }
+  }
+
+  // Estirar el contenedor del iframe a todo el alto del bloque que lo aloja.
+  const box = frame.parentElement;
+  const view = box && box.ownerDocument.defaultView;
+  if (view && view.getComputedStyle(box).position === 'absolute') {
+    box.style.top = '0px';
+    box.style.bottom = '0px';
+    box.style.height = 'auto';
+  }
+
+  // Sólo si nuestro bloque es el único contenido de la página: si compartiera
+  // página con otros bloques, pintarla de negro rompería a los demás.
+  if (dark && page && page.children.length === 1) page.style.backgroundColor = '#000';
+}
+
+// ---------------- Render: pago de contado (sin banco/tasa/plazo) ----------------
+// Sin banco no hay marca de banco que mostrar: se usa la identidad real de
+// Royal Enfield (negro + rojo, royalenfieldco.com) en toda la hoja en vez del
+// acento neutro — clases .re-* propias, ver el bloque "skin-contado" del CSS.
+function renderContado(sim) {
+  document.body.className = 'skin-contado';
+  fitToHostPage(true);
+
+  $('loading').style.display = 'none';
+  $('error').style.display = 'none';
+  $('view').style.display = 'block';
+
+  const row = (label, value, sub, extraClass) => `<div class="re-row"><span class="re-row-k">${escHtml(label)}${sub ? `<small>${escHtml(sub)}</small>` : ''}</span><span class="re-row-v${extraClass ? ' ' + extraClass : ''}">${value}</span></div>`;
+
+  const descuento = Number(sim.descuento) || 0;
+  const precioLista = Number(sim.precioLista) || sim.precio;
+  const conDescuento = descuento > 0;
+  const precioNeto = Number(sim.precio) || 0;
+
+  const rows = [];
+  if (sim.precio) rows.push(row('Precio del vehículo', money(conDescuento ? precioLista : sim.precio)));
+  if (conDescuento) rows.push(row('Descuento', `−${money(descuento)}`, null, 'is-credit'));
+
+  const ret = sim.retoma;
+  const retomaMonto = (ret && ret.enabled) ? (Number(ret.precio) || 0) : 0;
+  if (retomaMonto > 0) {
+    const veh = [ret.marca, ret.modelo].filter(Boolean).map(escHtml).join(' ');
+    const km = ret.kilometraje ? ` · ${Number(ret.kilometraje).toLocaleString('es-MX')} km` : '';
+    rows.push(row(`Vehículo de retoma${veh ? ` (${veh}${km})` : ''}`, `−${money(retomaMonto)}`, null, 'is-credit'));
+  }
+
+  const total = sim.total != null ? Number(sim.total) : Math.max(0, precioNeto - retomaMonto);
+
+  const notes = notesArray(sim.specialNotes);
+  const notaHtml = notes.length ? `
+    <div class="re-note">
+      <span class="re-note-title">Nota</span>
+      ${notes.map(n => `<p>* ${escHtml(n)}</p>`).join('')}
+    </div>` : '';
+
+  $('view').innerHTML = `
+    <div class="re-eyebrow">Cotización</div>
+    <div class="re-brand-row">
+      <span class="re-wordmark">Royal Enfield<small>GLG Motomex</small></span>
+      <span class="re-tag">Pago de contado</span>
+    </div>
+    <div class="re-rule"></div>
+
+    ${sim.modelo ? `<div class="re-vehicle">${escHtml(sim.modelo)}${sim.cilindrada ? ` · ${escHtml(String(sim.cilindrada))} cc` : ''}</div>` : ''}
+
+    <div class="re-hero">
+      <div class="re-hero-label">Total a pagar</div>
+      <div class="re-total">${money(total)}</div>
+      <div class="re-sub">Sin financiamiento · sujeta a disponibilidad</div>
+    </div>
+
+    ${notaHtml}
+
+    <div class="re-rows">
+      ${rows.join('')}
+      <div class="re-row re-total-row"><span class="re-row-k">Total a pagar</span><span class="re-row-v">${money(total)}</span></div>
+    </div>
+
+    <p class="re-foot">Cotización de contado con Royal Enfield GLG Motomex. Precio sujeto a disponibilidad del modelo.</p>
+  `;
+}
+
 // ---------------- Render (solo lectura, con marca del banco) ----------------
 function render(sim) {
+  if (sim.contado) return renderContado(sim);
   const t = BANK_THEME[sim.banco] || BANK_THEME.bbva;
   document.body.className = 'skin-' + sim.banco;
   document.body.style.setProperty('--bank', t.color);
+  fitToHostPage(false);
 
   $('loading').style.display = 'none';
   $('error').style.display = 'none';
@@ -95,22 +210,12 @@ function render(sim) {
     </div>`;
   }
 
-  // Nota de descuento en el hero (solo si la cotización tiene descuento aplicado).
-  const heroDescHtml = conDescuento
-    ? `<div class="rv-hero-desc">*Incluye un descuento de <strong>${money(descuento)}</strong> sobre el precio de lista</div>`
-    : '';
-
   // Nota especial (pública) del producto, si el asesor la guardó en el Site 1.
   const notes = notesArray(sim.specialNotes);
-  const notesHtml = notes.length
-    ? `<div class="rv-note-box" style="border-left-color:${t.color}">
-        <div class="rv-note-box-title" style="color:${t.color}">Nota</div>
-        ${notes.map(n => `<p>${escHtml(n)}</p>`).join('')}
-      </div>`
+  // Nota especial: texto dentro del recuadro de la cuota, a la derecha.
+  const notaInner = notes.length
+    ? `<span class="rv-hero-note-title">Nota</span>${notes.map(n => `<p>* ${escHtml(n)}</p>`).join('')}`
     : '';
-  // Si hay nota o retoma, la parte superior pasa a 2 columnas (cuota | nota/retoma)
-  // para no crecer verticalmente.
-  const hasAside = !!(notesHtml || retomaHtml);
 
   const logoHtml = t.img
     ? `<img class="rv-logo-img" src="${t.img}" alt="${escHtml(t.name)}">`
@@ -122,16 +227,16 @@ function render(sim) {
     </div>
     ${sim.modelo ? `<div class="rv-vehicle">
       <span class="rv-vehicle-name">${escHtml(sim.modelo)}</span>
+      ${sim.cilindrada ? `<span class="rv-vehicle-sku">${escHtml(String(sim.cilindrada))} cc</span>` : ''}
     </div>` : ''}
 
-    <div class="rv-top${hasAside ? ' rv-top-2' : ''}">
-      <div class="rv-hero">
+    <div class="rv-hero${notes.length ? ' rv-hero-2' : ''}">
+      <div class="rv-hero-main">
         <div class="rv-hero-label">Cuota mensual</div>
         <div class="rv-cuota" style="color:${t.color}">${money(sim.cuota)}</div>
         <div class="rv-hero-sub">Tasa ${pct(sim.tasa)} anual · ${escHtml(String(sim.plazo))} meses</div>
-        ${heroDescHtml}
       </div>
-      ${hasAside ? `<div class="rv-aside">${notesHtml}${retomaHtml}</div>` : ''}
+      ${notes.length ? `<div class="rv-hero-note">${notaInner}</div>` : ''}
     </div>
 
     <div class="rv-rows">${rows.join('')}</div>
@@ -140,6 +245,8 @@ function render(sim) {
       ${row('Pago inicial', money(sim.pagoInicial), 'Enganche + comisión por apertura')}
       <div class="rv-row rv-total"><span class="rv-k">Importe total a pagar</span><span class="rv-v" style="color:${t.color}">${money(sim.total)}</span></div>
     </div>
+
+    ${retomaHtml}
 
     <p class="rv-note">Simulación informativa con ${escHtml(sim.bancoName)}. Los seguros se financian dentro de la cuota; el pago inicial (enganche + comisión) no se financia. Sujeto a aprobación de crédito.</p>
   `;
@@ -174,8 +281,17 @@ async function init() {
 
   const params = new URLSearchParams(window.location.search);
 
-  // Vista previa local del diseño: ?preview=santander|bbva|banregio
+  // Vista previa local del diseño: ?preview=santander|bbva|banregio|contado
   const pv = params.get('preview');
+  if (IS_LOCAL && pv === 'contado') {
+    return render({
+      contado: true, modelo: 'Classic 350',
+      sku: 'pl-2025_classic-halcyon-green', precioLista: 119900, descuento: 5000,
+      precio: 114900, total: 72900,
+      specialNotes: ['Incluye casco de regalo y primer servicio gratis.'],
+      retoma: { enabled: true, marca: 'Honda', modelo: 'CB 190R', kilometraje: 18500, precio: 42000, moneda: 'MXN' },
+    });
+  }
   if (IS_LOCAL && pv) {
     const bank = BANK_THEME[pv] ? pv : 'santander';
     return render({
@@ -207,7 +323,9 @@ async function init() {
         const deal = await fetchDeal(info.jsonUrl);
         const sim = extractSim(deal);
         return sim ? render(sim) : showError('Esta propuesta no tiene una simulación de crédito guardada.');
-      } catch (e) { /* espera postMessage */ }
+      } catch (e) { console.warn('[cotizador] fetchDeal por URL falló, esperando postMessage:', e.message); }
+    } else {
+      console.warn('[cotizador] no se pudo extraer el id del Deal de la URL del host:', document.referrer || '(sin referrer)');
     }
     setTimeout(() => { if ($('view').style.display === 'none') showError('No se encontró la simulación de crédito en esta propuesta.'); }, 4000);
   } else {

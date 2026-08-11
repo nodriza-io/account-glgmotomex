@@ -30,7 +30,7 @@ body.skin-bbva .glg-tab.active { background: #072146; }
 body.skin-banregio .glg-tab.active { background: #ff6a00; }
 
 /* Quoted vehicle banner */
-.glg-quoted { margin: 16px 0 0; padding: 13px 18px; display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #e6e7ea; border-left: 3px solid #4f46e5; border-radius: 12px; }
+.glg-quoted { margin: 16px 0 0; padding: 13px 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: #fff; border: 1px solid #e6e7ea; border-left: 3px solid #4f46e5; border-radius: 12px; }
 .glg-quoted-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #4f46e5; }
 .glg-quoted-model { font-size: 16px; font-weight: 700; color: #17181c; }
 .glg-quoted-sku { font-size: 13px; color: #8a9099; }
@@ -57,8 +57,7 @@ body.skin-banregio .glg-tab.active { background: #ff6a00; }
 .bbva-logo { font-weight: 800; font-size: 30px; font-style: italic; color: #072146; letter-spacing: 1px; }
 .bbva-grid { display: grid; grid-template-columns: 1fr 400px; gap: 56px; align-items: start; }
 @media (max-width: 840px) { .bbva-grid { grid-template-columns: 1fr; gap: 32px; } }
-.bbva-title { font-size: 40px; line-height: 1.1; font-weight: 800; margin: 0 0 12px; letter-spacing: -.5px; color: #121212; }
-@media (max-width: 480px) { .bbva-title { font-size: 30px; } }
+.bbva-title { font-size: clamp(26px, 7.5vw, 40px); line-height: 1.1; font-weight: 800; margin: 0 0 12px; letter-spacing: -.5px; color: #121212; }
 .bbva-sub { font-size: 16px; color: #6b7280; margin: 0 0 28px; }
 .bbva-field { margin-bottom: 22px; }
 .bbva-input { width: 100%; border: none; border-bottom: 1px solid #c9ccd1; background: transparent; font-size: 17px; padding: 10px 2px; font-family: inherit; color: #121212; outline: none; }
@@ -82,14 +81,18 @@ body.skin-banregio .glg-tab.active { background: #ff6a00; }
 .calc-desc-head { font-size: 12.5px; font-weight: 700; color: #6b7280; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .calc-desc-tag { font-size: 10.5px; font-weight: 600; color: #9aa0a6; background: #f0f1f3; border-radius: 10px; padding: 2px 9px; }
 .calc-desc-row { display: flex; align-items: stretch; gap: 8px; }
-.calc-desc-inp { flex: 1; min-width: 0; border: 1px solid #dcdfe4; border-radius: 8px; padding: 12px 14px; font-size: 15px; font-family: inherit; outline: none; background: #fff; color: #17181c; }
+/* `width:0` + `flex:1` para que el input NO imponga su ancho por defecto (~20 car.)
+   como ancho mínimo de la columna del grid en pantallas angostas. */
+.calc-desc-inp { flex: 1 1 0; width: 0; min-width: 0; border: 1px solid #dcdfe4; border-radius: 8px; padding: 12px 14px; font-size: 16px; font-family: inherit; outline: none; background: #fff; color: #17181c; }
 .calc-desc-inp:focus { border-color: #17181c; }
 .calc-desc-tg { display: inline-flex; border: 1px solid #dcdfe4; border-radius: 8px; overflow: hidden; flex: none; }
 .calc-tg { border: none; background: #fff; color: #6b7280; font-size: 15px; font-weight: 700; width: 44px; cursor: pointer; font-family: inherit; }
 .calc-tg + .calc-tg { border-left: 1px solid #dcdfe4; }
 .calc-tg.active { background: #17181c; color: #fff; }
+.calc-desc-hint { font-size: 11.5px; color: #9aa0a6; margin-top: 7px; }
+.calc-desc-hint.warn { color: #c0392b; font-weight: 600; }
 .bbva-card { background: #f4f5f7; border-radius: 6px; padding: 30px 28px; }
-.bbva-cuota { font-size: 40px; font-weight: 800; color: #121212; letter-spacing: -.5px; }
+.bbva-cuota { font-size: clamp(30px, 9vw, 40px); font-weight: 800; color: #121212; letter-spacing: -.5px; }
 .bbva-cuota-label { font-size: 16px; color: #121212; margin-bottom: 22px; }
 .bbva-costs-head { padding: 16px 0 8px; color: #1464a5; font-size: 16px; font-weight: 700; border-top: 1px solid #dfe2e6; }
 .bbva-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; font-size: 14.5px; color: #333; }
@@ -109,7 +112,7 @@ body.skin-banregio .glg-tab.active { background: #ff6a00; }
 .stdr-logo { font-size: 24px; font-weight: 700; color: #ec0000; }
 .stdr-grid { display: grid; grid-template-columns: 1fr 380px; gap: 48px; align-items: start; }
 @media (max-width: 840px) { .stdr-grid { grid-template-columns: 1fr; gap: 30px; } }
-.stdr-title { font-size: 34px; font-weight: 700; margin: 0 0 10px; color: #1a1a1a; }
+.stdr-title { font-size: clamp(26px, 7.5vw, 34px); font-weight: 700; margin: 0 0 10px; color: #1a1a1a; }
 .stdr-sub { font-size: 15px; color: #666; margin: 0 0 26px; }
 .stdr-label { display: block; font-size: 13px; font-weight: 700; color: #444; margin: 16px 0 6px; }
 .stdr-field { position: relative; }
@@ -123,7 +126,7 @@ body.skin-banregio .glg-tab.active { background: #ff6a00; }
 .stdr-btn:hover { background: #cc0000; }
 .stdr-card { background: #fff; border: 1px solid #eee; border-radius: 14px; box-shadow: 0 12px 30px rgba(0,0,0,.06); padding: 28px 26px; }
 .stdr-card-label { font-size: 15px; color: #666; }
-.stdr-cuota { font-size: 44px; font-weight: 800; color: #ec0000; letter-spacing: -.5px; margin: 4px 0 20px; }
+.stdr-cuota { font-size: clamp(32px, 10vw, 44px); font-weight: 800; color: #ec0000; letter-spacing: -.5px; margin: 4px 0 20px; }
 .stdr-rows { border-top: 1px solid #eee; padding-top: 10px; }
 .stdr-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; font-size: 14.5px; color: #444; }
 .stdr-row small { color: #999; font-size: 12px; }
@@ -140,7 +143,7 @@ body.skin-banregio .glg-tab.active { background: #ff6a00; }
 .bnr-logo-row { padding: 12px 0 24px; }
 .bnr-logo { font-size: 26px; font-weight: 800; color: #2b2b2b; }
 .bnr-logo-accent { color: #ff6a00; }
-.bnr-title { font-size: 38px; font-weight: 800; color: #2b2b2b; margin: 0 0 10px; }
+.bnr-title { font-size: clamp(26px, 7.5vw, 38px); font-weight: 800; color: #2b2b2b; margin: 0 0 10px; }
 .bnr-accent { color: #ff6a00; }
 .bnr-sub { font-size: 17px; color: #555; margin: 0 0 30px; font-weight: 500; }
 .bnr-section { font-size: 20px; color: #ff6a00; font-weight: 700; margin: 0 0 16px; }
@@ -158,10 +161,41 @@ body.skin-banregio .glg-tab.active { background: #ff6a00; }
 @media (max-width: 840px) { .bnr-grid { grid-template-columns: 1fr; gap: 30px; } }
 .bnr-card { background: #fff8f3; border: 1px solid #ffe0cc; border-radius: 16px; padding: 26px 24px; }
 .bnr-pago-label { font-size: 14px; color: #ff6a00; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
-.bnr-cuota { font-size: 40px; font-weight: 800; color: #1a1a1a; letter-spacing: -.5px; margin: 2px 0 4px; }
+.bnr-cuota { font-size: clamp(30px, 9vw, 40px); font-weight: 800; color: #1a1a1a; letter-spacing: -.5px; margin: 2px 0 4px; }
 .bnr-resumen { font-size: 17px; color: #ff6a00; font-weight: 700; margin: 16px 0 8px; padding-top: 16px; border-top: 1px solid #ffe0cc; }
 .bnr-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; font-size: 15px; color: #444; border-bottom: 1px solid #e6e6e6; }
 .bnr-row small { color: #999; font-size: 12px; }
 .bnr-row span:last-child { font-weight: 600; white-space: nowrap; }
 .bnr-row-strong span { font-weight: 700; }
 .bnr-row-total span:last-child { color: #ff6a00; font-size: 17px; }
+
+/* ============================================================================
+   MÓVIL — las skins de banco.
+   Dos reglas de fondo, válidas para los 3 bancos:
+   1) Las columnas del grid llevan `min-width: 0`: sin esto, el ancho mínimo
+      intrínseco de un input arrastra toda la columna y desborda la pantalla.
+   2) El skin ya vive dentro de `.s1-band`, que aporta su propio padding
+      lateral: en móvil se recorta el del skin para no pagarlo dos veces.
+   ============================================================================ */
+.bbva-grid > *, .stdr-grid > *, .bnr-grid > *, .bnr-fields > * { min-width: 0; }
+
+@media (max-width: 720px) {
+  .bbva, .stdr, .bnr { padding: 18px 16px 40px; }
+  .bbva-card { padding: 22px 16px; }
+  .stdr-card { padding: 22px 16px; }
+  .bnr-card { padding: 20px 16px; }
+  /* Los CTA ocupan el ancho completo: objetivo táctil cómodo. */
+  .bbva-btn, .stdr-btn, .bnr-btn { width: 100%; padding-left: 20px; padding-right: 20px; }
+  /* Desglose: etiqueta y valor pueden apilarse antes que desbordar. */
+  .bbva-row, .stdr-row, .bnr-row { font-size: 14px; gap: 10px; }
+  .bbva-costs-head, .bnr-resumen, .bnr-section { font-size: 16px; }
+  .bbva-sub, .stdr-sub, .bnr-sub { font-size: 15px; margin-bottom: 20px; }
+  .glg-quoted { padding: 11px 14px; gap: 8px; }
+  .glg-tab { padding: 9px 15px; font-size: 13.5px; }
+}
+
+/* Igual que en el formulario: en táctil ningún campo baja de 16px, o iOS hace
+   zoom al enfocarlo. Por `pointer: coarse`, no por ancho — el iPad también. */
+@media (pointer: coarse) {
+  .glg-inp, .bbva-input, .stdr-ctrl, .bnr-ctrl, .bbva-select select, .calc-desc-inp, .calc-tg { font-size: 16px; }
+}

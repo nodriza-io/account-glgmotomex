@@ -1,10 +1,13 @@
 /* eslint-env browser */
 /**
- * Skins fieles por banco. Cada uno usa los MISMOS ids de control y de salida,
- * así el orquestador (app.js) los maneja de forma idéntica:
- *   Controles:  f_modelo, f_precio, f_enganche, f_plazo, f_guardar
+ * Skins fieles por banco (+ el skin "contado", sin financiamiento). Cada uno
+ * usa los MISMOS ids de control y de salida, así el orquestador (calculator.js)
+ * los maneja de forma idéntica:
+ *   Controles:  f_modelo, f_precio, f_enganche (+f_engToggle), f_plazo,
+ *               f_descuento (+f_descToggle), f_guardar
  *   Salidas:    o_cuota, o_tasa, o_engPct, o_enganche, o_financiar,
  *               o_cxaPct, o_cxa, o_seguro1, o_seguro2, o_inicial, o_total
+ *               (contado usa además o_ctPrecio, o_ctRetomaRow, o_ctRetoma)
  */
 
 // Filas del desglose reutilizables (varían solo por clases de estilo)
@@ -36,6 +39,25 @@ function descuentoField() {
     </div>`;
 }
 
+// Campo de enganche (compartido por los 3 skins). Toggle %/$: el asesor puede
+// teclear el enganche como % del precio (el modo de siempre) o como un monto
+// fijo en pesos; el motor ajusta la tasa según el % efectivo que resulte, sin
+// permitir bajar del mínimo que exige el banco para la cilindrada elegida.
+function engancheField() {
+  return `
+    <div class="calc-desc">
+      <div class="calc-desc-head">Enganche</div>
+      <div class="calc-desc-row">
+        <input id="f_enganche" class="calc-desc-inp" type="text" inputmode="numeric" placeholder="20" autocomplete="off">
+        <div class="calc-desc-tg" id="f_engToggle">
+          <button type="button" data-mode="pct" class="calc-tg active">%</button>
+          <button type="button" data-mode="val" class="calc-tg">$</button>
+        </div>
+      </div>
+      <div class="calc-desc-hint" id="f_engHint"></div>
+    </div>`;
+}
+
 const SKINS = {
   // ======================= BBVA (clon "Simula tu Crédito de Vehículo") =======================
   bbva: () => `
@@ -47,7 +69,7 @@ const SKINS = {
           <p class="bbva-sub">Elige el modelo y las condiciones para conocer tu cuota mensual.</p>
           <div class="bbva-field"><div class="bbva-select"><select id="f_modelo"></select><span class="bbva-chevron">⌄</span></div></div>
           <div class="bbva-field"><div class="bbva-input-affix"><input id="f_precio" readonly tabindex="-1" class="bbva-input" type="text" inputmode="numeric" placeholder="Valor del vehículo"><span class="bbva-affix">$</span></div></div>
-          <div class="bbva-field"><div class="bbva-select"><select id="f_enganche"></select><span class="bbva-chevron">⌄</span></div></div>
+          ${engancheField()}
           <div class="bbva-field"><div class="bbva-select"><select id="f_plazo"></select><span class="bbva-chevron">⌄</span></div></div>
           <p class="bbva-note"><span class="bbva-i">i</span> La tasa se ajusta según el enganche. Cotización informativa.</p>
           ${descuentoField()}
@@ -77,8 +99,7 @@ const SKINS = {
           <div class="stdr-field"><select id="f_modelo" class="stdr-ctrl"></select></div>
           <label class="stdr-label">Precio del vehículo</label>
           <div class="stdr-field stdr-affix"><span class="stdr-cur">$</span><input id="f_precio" readonly tabindex="-1" class="stdr-ctrl" type="text" inputmode="numeric"></div>
-          <label class="stdr-label">Enganche</label>
-          <div class="stdr-field"><select id="f_enganche" class="stdr-ctrl"></select></div>
+          ${engancheField()}
           <label class="stdr-label">Plazo</label>
           <div class="stdr-field"><select id="f_plazo" class="stdr-ctrl"></select></div>
           ${descuentoField()}
@@ -105,9 +126,9 @@ const SKINS = {
           <div class="bnr-fields">
             <select id="f_modelo" class="bnr-ctrl"></select>
             <div class="bnr-affix"><input id="f_precio" readonly tabindex="-1" class="bnr-ctrl" type="text" inputmode="numeric" placeholder="Precio del vehículo"><span class="bnr-cur">$</span></div>
-            <select id="f_enganche" class="bnr-ctrl"></select>
             <select id="f_plazo" class="bnr-ctrl"></select>
           </div>
+          ${engancheField()}
           ${descuentoField()}
           <button id="f_guardar" class="bnr-btn">Guardar cotización</button>
         </div>
@@ -116,6 +137,34 @@ const SKINS = {
           <div class="bnr-cuota" id="o_cuota">$0.00</div>
           <h3 class="bnr-resumen">Resumen</h3>
           ${breakdownRows('bnr')}
+        </aside>
+      </div>
+    </div>`,
+
+  // ======================= CONTADO (sin financiamiento) =======================
+  contado: () => `
+    <div class="bbva">
+      <div class="bbva-logo-row"><span class="glg-logo-sub">Pago de contado</span></div>
+      <div class="bbva-grid">
+        <div class="bbva-left">
+          <h1 class="bbva-title">Pago de contado</h1>
+          <p class="bbva-sub">Sin financiamiento — el cliente paga el total directamente.</p>
+          <div class="bbva-field"><div class="bbva-select"><select id="f_modelo"></select><span class="bbva-chevron">⌄</span></div></div>
+          <div class="bbva-field"><div class="bbva-input-affix"><input id="f_precio" readonly tabindex="-1" class="bbva-input" type="text" inputmode="numeric" placeholder="Valor del vehículo"><span class="bbva-affix">$</span></div></div>
+          ${descuentoField()}
+          <button id="f_guardar" class="bbva-btn">Guardar en la propuesta</button>
+        </div>
+        <aside class="bbva-card">
+          <div class="bbva-cuota" id="o_cuota">$0</div>
+          <div class="bbva-cuota-label">Total a pagar de contado</div>
+          <div class="bbva-costs">
+            <div class="bbva-costs-body">
+              <div class="bbva-row"><span>Precio del vehículo</span><span id="o_ctPrecio">$0</span></div>
+              <div class="bbva-row" id="o_ctRetomaRow" style="display:none;"><span>Vehículo de retoma</span><span id="o_ctRetoma">−$0</span></div>
+              <div class="bbva-row bbva-row-strong bbva-row-total"><span>Total a pagar</span><span id="o_total">$0</span></div>
+            </div>
+          </div>
+          <p class="bbva-card-note"><span class="bbva-i">i</span> Cotización de contado, sin financiamiento.</p>
         </aside>
       </div>
     </div>`,
