@@ -19,6 +19,13 @@ const SHEET_ID = '1qfk8_Y2lEpJ7JkCTJCfo--snNDwCNHIS_tNE6k3DDTE';
 const BANK_MATRIX_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`; // primera pestaña (tasas)
 const MODELOS_SHEET_NAMES = ['Modelos', 'modelos-template', 'modelos', 'Modelos GLG']; // nombres de pestaña a probar
 
+// Rango plausible para una tasa anual de crédito de moto en México. El Sheet lo
+// edita el cliente a mano: un dedazo (escribir "1" en vez de "17,99") produce una
+// cuota falsa que viaja hasta la propuesta. Toda fila fuera de este rango se
+// descarta y esa cilindrada conserva la tasa embebida en data.js.
+const TASA_MIN = 0.05; // 5% anual
+const TASA_MAX = 0.60; // 60% anual
+
 function bankKeyFromName(name) {
   const n = String(name || '').trim().toLowerCase();
   if (n.indexOf('santander') > -1) return 'santander';
@@ -80,15 +87,26 @@ function parseBankCsv(text) {
       };
     }
     const desde = csvNum(c[2]);
-    cc.tiers.push({ minEng: desde, rate: csvNum(c[3]) / 100 }); // Tasa anual (%)
+    const rate = csvNum(c[3]) / 100; // Tasa anual (%)
+    if (rate < TASA_MIN || rate > TASA_MAX) {
+      console.warn(`[GLG] Tasa fuera de rango en el Sheet: ${(c[0] || '').trim()} ${cil}cc, enganche desde ${desde}% → "${c[3]}". Fila ignorada; se usa la tasa embebida.`);
+      continue;
+    }
+    cc.tiers.push({ minEng: desde, rate });
     if (desde < cc.minEng) cc.minEng = desde; // el enganche mínimo = el tramo más bajo
   }
-  Object.keys(banks).forEach(k => Object.keys(banks[k].cilindradas).forEach(cil => {
-    const cc = banks[k].cilindradas[cil];
-    if (!isFinite(cc.minEng)) cc.minEng = 20;
-    if (!cc.tiers.length) cc.tiers = [{ minEng: cc.minEng, rate: 0.1799 }];
-    cc.tiers.sort((a, b) => b.minEng - a.minEng);
-  }));
+  Object.keys(banks).forEach(k => {
+    const cils = banks[k].cilindradas;
+    Object.keys(cils).forEach(cil => {
+      const cc = cils[cil];
+      // Sin ningún tramo válido no se inventa una tasa: se borra la cilindrada
+      // para que `applyMatrix` no pise la matriz embebida de data.js.
+      if (!cc.tiers.length) { delete cils[cil]; return; }
+      if (!isFinite(cc.minEng)) cc.minEng = 20;
+      cc.tiers.sort((a, b) => b.minEng - a.minEng);
+    });
+    if (!Object.keys(cils).length) delete banks[k];
+  });
   return Object.keys(banks).length ? banks : null;
 }
 
