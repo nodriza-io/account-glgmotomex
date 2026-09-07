@@ -6,12 +6,18 @@
  * las tasas/seguros/enganche/plazos SIN redeploy. Si no hay URL o falla la lectura,
  * se usa la matriz embebida en data.js (fallback seguro).
  *
- * Layout del CSV — columnas con nombres claros, UNA fila por regla de tasa:
+ * Layout del CSV — columnas con nombres claros, UNA fila por CASO:
  *   Banco | Cilindrada | Enganche desde (%) | Tasa anual (%) | Seguro ($) |
  *   Seguro de vida ($) | Plazos (meses) | Comisión apertura (%)
  *   - Un banco+cilindrada puede tener varias filas (una por tramo de enganche).
- *   - Se aplica la MEJOR (menor) tasa cuyo "Enganche desde" cumpla el cliente.
+ *   - Se aplica el tramo de mayor "Enganche desde" que el cliente alcance, y de
+ *     ese tramo salen SU tasa, SU seguro de daños y SU seguro de vida: los tres
+ *     pueden cambiar de un tramo a otro (ver `resolveTramo` en engine.js).
  *   - Tasas y comisión en %, ej. 17.99 y 3. El enganche mínimo se toma del tramo más bajo.
+ *   - Una celda vacía NO vale 0: el campo conserva lo que traiga data.js.
+ *   - Plazos y comisión siguen siendo por cilindrada / por banco: se toman de la
+ *     primera fila que los traiga. Si algún día varían por tramo, hay que moverlos
+ *     al tramo igual que los seguros.
  */
 
 // Google Sheet (endpoint gviz CSV — pasa CORS y refleja el Origin del site).
@@ -79,12 +85,11 @@ function parseBankCsv(text) {
     let cc = banks[key].cilindradas[cil];
     if (!cc) {
       const plazos = String(c[6] || '').split(/[,\s]+/).map(x => parseInt(x, 10)).filter(Boolean);
-      cc = banks[key].cilindradas[cil] = {
-        plazos: plazos.length ? plazos : [12, 24, 36, 48, 60],
-        minEng: Infinity, maxEng: 60,
-        seguro: csvNum(c[4]), seguroVida: csvNum(c[5]),
-        tiers: [],
-      };
+      cc = banks[key].cilindradas[cil] = { minEng: Infinity, maxEng: 60, tiers: [] };
+      // Solo se escribe lo que el Sheet realmente trae: una celda vacía deja el
+      // campo sin definir para que `applyMatrix` conserve el valor de data.js,
+      // en vez de pisarlo con 0.
+      if (plazos.length) cc.plazos = plazos;
     }
     const desde = csvNum(c[2]);
     const rate = csvNum(c[3]) / 100; // Tasa anual (%)
@@ -92,7 +97,15 @@ function parseBankCsv(text) {
       console.warn(`[GLG] Tasa fuera de rango en el Sheet: ${(c[0] || '').trim()} ${cil}cc, enganche desde ${desde}% → "${c[3]}". Fila ignorada; se usa la tasa embebida.`);
       continue;
     }
-    cc.tiers.push({ minEng: desde, rate });
+    // Cada fila es un caso completo: el seguro de daños y el de vida son SUYOS,
+    // igual que la tasa. Un mismo banco+cilindrada puede tener pólizas distintas
+    // según el tramo de enganche, así que viajan dentro del tramo y no a nivel
+    // de cilindrada. Ver `resolveTramo` en engine.js.
+    const tier = { minEng: desde, rate };
+    const seg = csvNum(c[4]), segVida = csvNum(c[5]);
+    if (seg > 0) tier.seguro = seg;
+    if (segVida > 0) tier.seguroVida = segVida;
+    cc.tiers.push(tier);
     if (desde < cc.minEng) cc.minEng = desde; // el enganche mínimo = el tramo más bajo
   }
   Object.keys(banks).forEach(k => {
@@ -117,7 +130,12 @@ function applyMatrix(parsed) {
     if (!BANKS[k]) return; // solo bancos conocidos
     if (parsed[k].cxa) BANKS[k].cxa = parsed[k].cxa;
     const cils = parsed[k].cilindradas || {};
-    Object.keys(cils).forEach(cil => { BANKS[k].cilindradas[cil] = cils[cil]; });
+    Object.keys(cils).forEach(cil => {
+      // Merge campo a campo, no reemplazo: lo que el Sheet no trae (celda vacía)
+      // conserva el valor embebido de data.js. `tiers` sí se reemplaza entero —
+      // los tramos del Sheet son la fuente de verdad de tasas y seguros.
+      BANKS[k].cilindradas[cil] = Object.assign({}, BANKS[k].cilindradas[cil], cils[cil]);
+    });
   });
 }
 

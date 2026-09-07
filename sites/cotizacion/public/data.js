@@ -17,8 +17,12 @@
  *                      BBVA: es la prima ANUAL con IVA y se RENUEVA cada 12
  *                      meses (a 36 meses se pagan 3 primas). Ver engine.js.
  *      seguroVida   -> Seguro de vida y desempleo (monto fijo $)
- *      tiers        -> Tasa anual según tramo de enganche.
- *                      Se aplica la MEJOR tasa cuyo minEng <= enganche del cliente.
+ *      tiers        -> Tramos por enganche. Se aplica el de mayor minEng que el
+ *                      cliente alcance. Cada tramo lleva su `rate` y, si viene
+ *                      del Google Sheet, también su `seguro` y `seguroVida`
+ *                      propios (una fila del Sheet = un caso completo). Aquí la
+ *                      matriz embebida solo trae `rate`: los seguros se toman
+ *                      del nivel de cilindrada. Ver `resolveTramo` en engine.js.
  * ============================================================================
  *
  *  ✅ CONFIRMADO CON GLG (jul 2026):

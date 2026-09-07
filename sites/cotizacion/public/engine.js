@@ -9,11 +9,25 @@
  *   - BBVA: modelo real del banco. Ver `calcularBBVA`.
  */
 
-// Devuelve la MEJOR tasa (menor) cuyo minEng <= enganche del cliente.
-function resolveTasa(cil, engPct) {
+/**
+ * Devuelve el TRAMO que aplica al enganche del cliente: el de mayor `minEng`
+ * que el enganche alcanza (si no llega a ninguno, el más bajo).
+ *
+ * Cada fila del Sheet es un caso completo — banco + cilindrada + tramo de
+ * enganche — y puede traer su propio seguro de daños y su propio seguro de
+ * vida, no solo su tasa. Un enganche más alto puede tener otra póliza.
+ * Si el tramo no trae seguros propios (caso de la matriz embebida en data.js,
+ * donde viven a nivel de cilindrada), se usan los de la cilindrada.
+ */
+function resolveTramo(cil, engPct) {
   const tiers = [...cil.tiers].sort((a, b) => b.minEng - a.minEng);
-  for (const t of tiers) if (engPct >= t.minEng) return t.rate;
-  return tiers[tiers.length - 1].rate;
+  let t = tiers[tiers.length - 1];
+  for (const x of tiers) { if (engPct >= x.minEng) { t = x; break; } }
+  return {
+    rate: t.rate,
+    seguro: t.seguro != null ? t.seguro : cil.seguro,
+    seguroVida: t.seguroVida != null ? t.seguroVida : cil.seguroVida,
+  };
 }
 
 // Cuota de un crédito francés: capital `pv` a `n` meses con tasa mensual `i`.
@@ -56,13 +70,13 @@ function pmt(i, n, pv) {
 const BBVA_IVA = 0.16;
 const BBVA_DIAS_MES = 30.4375; // 365.25/12 — mes promedio, para el conteo actual/360
 
-function calcularBBVA({ precioNeto, enganchePct, plazo, cil, tasa, cxaPct }) {
+function calcularBBVA({ precioNeto, enganchePct, plazo, tramo, tasa, cxaPct }) {
   const i = tasa / 360 * BBVA_DIAS_MES;
 
   const enganche = precioNeto * (enganchePct / 100);
   const financiar = precioNeto - enganche;
-  const seguro = cil.seguro;         // prima ANUAL de daños (con IVA), se renueva
-  const seguroVida = cil.seguroVida; // se amortiza a todo el plazo
+  const seguro = tramo.seguro;         // prima ANUAL de daños (con IVA), se renueva
+  const seguroVida = tramo.seguroVida; // se amortiza a todo el plazo
 
   // "Monto Total a Financiar" de la cotización BBVA.
   const montoFinanciado = financiar + seguro + seguroVida;
@@ -129,10 +143,11 @@ function calcularFinanciamiento({ banco, cilindrada, precio, enganchePct, plazo,
   if (!bank || !cil) return null;
 
   const precioNeto = Math.max(0, (precio || 0) - (descuento || 0)); // descuento aplicado al modelo
-  const tasa = resolveTasa(cil, enganchePct);
+  const tramo = resolveTramo(cil, enganchePct);
+  const tasa = tramo.rate;
 
   if (banco === 'bbva') {
-    return calcularBBVA({ precioNeto, enganchePct, plazo, cil, tasa, cxaPct: bank.cxa });
+    return calcularBBVA({ precioNeto, enganchePct, plazo, tramo, tasa, cxaPct: bank.cxa });
   }
 
   const enganche = precioNeto * (enganchePct / 100);
@@ -140,14 +155,14 @@ function calcularFinanciamiento({ banco, cilindrada, precio, enganchePct, plazo,
   const cxaMonto = financiar * bank.cxa;           // comisión por apertura
   const pagoInicial = enganche + cxaMonto;         // enganche + CxA (no se financia)
 
-  const principal = financiar + cil.seguro + cil.seguroVida;  // seguros financiados
+  const principal = financiar + tramo.seguro + tramo.seguroVida;  // seguros financiados
   const i = tasa / 12;
   const cuota = principal * i / (1 - Math.pow(1 + i, -plazo));
   const totalPagar = cuota * plazo + pagoInicial;
 
   return {
     tasa, enganche, financiar, cxaMonto, pagoInicial,
-    seguro: cil.seguro, seguroVida: cil.seguroVida,
+    seguro: tramo.seguro, seguroVida: tramo.seguroVida,
     principal, cuota, totalPagar,
   };
 }
