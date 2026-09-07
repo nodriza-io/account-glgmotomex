@@ -25,31 +25,31 @@ body {
   width: 100%; height: 100%; max-width: 640px; margin: 0 auto; padding: 32px 22px;
   overflow: auto; display: flex; flex-direction: column; justify-content: center;
 }
-.rv-state { text-align: center; padding: 44px 20px; color: #9aa0a6; font-size: 14.5px; }
+.rv-state { text-align: center; padding: 44px 20px; color: #9aa0a6; font-size: 12.5px; }
 
 /* Marca del banco (planes de crédito) */
 .rv-brand { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 9px; margin-bottom: 12px; border-bottom: 2px solid var(--bank); }
-.rv-logo { font-size: 23px; font-weight: 800; letter-spacing: -.3px; }
+.rv-logo { font-size: 21px; font-weight: 800; letter-spacing: -.3px; }
 .rv-logo-img { height: 26px; width: auto; display: block; }
-.rv-tag { font-size: 12.5px; font-weight: 600; color: #6b7280; }
+.rv-tag { font-size: 10.5px; font-weight: 600; color: #6b7280; }
 
 /* Vehículo cotizado */
 .rv-vehicle { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
-.rv-vehicle-name { font-size: 16.5px; font-weight: 800; color: #17181c; }
-.rv-vehicle-sku { font-size: 12px; color: #8a9099; }
+.rv-vehicle-name { font-size: 14.5px; font-weight: 800; color: #17181c; }
+.rv-vehicle-sku { font-size: 10px; color: #8a9099; }
 
 /* Hero: cuota mensual / total */
 .rv-hero { background: #f6f7f8; border-radius: 12px; padding: 15px 20px; margin-bottom: 14px; }
-.rv-hero-label { font-size: 13px; color: #6b7280; }
-.rv-cuota { font-size: 24px; font-weight: 800; letter-spacing: -.4px; line-height: 1.1; margin: 2px 0 4px; }
-.rv-hero-sub { font-size: 13px; color: #6b7280; }
+.rv-hero-label { font-size: 11px; color: #6b7280; }
+.rv-cuota { font-size: 22px; font-weight: 800; letter-spacing: -.4px; line-height: 1.1; margin: 2px 0 4px; }
+.rv-hero-sub { font-size: 11px; color: #6b7280; }
 
 /* Nota especial: texto dentro del recuadro de la cuota, a la derecha */
 .rv-hero-2 { display: flex; gap: 18px; }
 .rv-hero-main { flex: 0 0 auto; }
 .rv-hero-note { flex: 1; min-width: 0; padding-left: 18px; border-left: 1px solid #e4e6e9; }
-.rv-hero-note-title { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #8a9099; margin-bottom: 3px; }
-.rv-hero-note p { margin: 0 0 3px; font-size: 11.5px; color: #4b5563; line-height: 1.5; overflow-wrap: anywhere; }
+.rv-hero-note-title { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #8a9099; margin-bottom: 3px; }
+.rv-hero-note p { margin: 0 0 3px; font-size: 10px; color: #4b5563; line-height: 1.5; overflow-wrap: anywhere; }
 .rv-hero-note p:last-child { margin-bottom: 0; }
 @media (max-width: 520px) {
   .rv-hero-2 { flex-direction: column; gap: 12px; }
@@ -59,30 +59,32 @@ body {
 /* Filas de detalle — 2 columnas para compactar sin cambiar el estilo de cada fila */
 .rv-rows { display: grid; grid-template-columns: 1fr 1fr; column-gap: 26px; align-items: stretch; }
 .rv-totals { display: flex; flex-direction: column; }
-.rv-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 2px; font-size: 14px; border-bottom: 1px solid #eef0f2; }
+.rv-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 2px; font-size: 12px; border-bottom: 1px solid #eef0f2; }
 .rv-k { color: #444; display: flex; flex-direction: column; gap: 1px; }
-.rv-k small { color: #9aa0a6; font-size: 11.5px; }
+.rv-k small { color: #9aa0a6; font-size: 10px; }
 .rv-v { font-weight: 700; white-space: nowrap; color: #17181c; }
-.rv-totals { margin-top: 12px; padding-top: 6px; border-top: 2px solid #edeff1; }
+/* Sin regla superior: el bloque de totales ya queda separado por el aire y por
+   el borde inferior de la última fila del desglose. */
+.rv-totals { margin-top: 12px; padding-top: 6px; }
 .rv-total { border-bottom: none; padding-top: 10px; }
-.rv-total .rv-k { font-weight: 700; color: #17181c; font-size: 15px; }
-.rv-total .rv-v { font-size: 20px; font-weight: 800; }
+.rv-total .rv-k { font-weight: 700; color: #17181c; font-size: 13px; }
+.rv-total .rv-v { font-size: 18px; font-weight: 800; }
 
 /* Descuento (fila de detalle) */
 .rv-desc { color: #1a8a4a; font-weight: 700; white-space: nowrap; }
 
 /* Disclaimer de vehículo de retoma (parte de pago) */
 .rv-retoma { display: flex; align-items: flex-start; gap: 11px; margin-top: 14px; padding: 12px 14px; background: #f8f9fa; border-left: 3px solid var(--bank); border-radius: 8px; }
-.rv-retoma-ic { flex: none; width: 22px; height: 22px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-size: 14px; font-weight: 700; line-height: 1; margin-top: 1px; }
-.rv-retoma-txt { font-size: 13px; color: #444; line-height: 1.5; }
+.rv-retoma-ic { flex: none; width: 22px; height: 22px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; line-height: 1; margin-top: 1px; }
+.rv-retoma-txt { font-size: 11px; color: #444; line-height: 1.5; }
 .rv-retoma-txt strong { font-weight: 700; color: #17181c; }
 
-.rv-note { font-size: 11.5px; color: #9aa0a6; line-height: 1.55; margin-top: 14px; }
+.rv-note { font-size: 10px; color: #9aa0a6; line-height: 1.55; margin-top: 14px; }
 
 /* En anchos angostos (iframe chico), vuelve a 1 columna para no apretar */
 @media (max-width: 470px) {
   .rv-rows { grid-template-columns: 1fr; column-gap: 0; }
-  .rv-cuota { font-size: 22px; }
+  .rv-cuota { font-size: 20px; }
 }
 
 /* ============================================================
@@ -121,12 +123,12 @@ body.skin-contado .rv-wrap {
 
 .re-note { border: 1px solid rgba(255,255,255,.16); border-radius: 10px; padding: clamp(9px, 2vh, 12px) 14px; margin-bottom: clamp(12px, 2.8vh, 24px); }
 .re-note-title { display: block; font: 700 10.5px/1 'Inter', sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #e2231a; margin-bottom: 5px; }
-.re-note p { margin: 0 0 3px; font-size: 12.5px; color: #d0d0d0; line-height: 1.5; }
+.re-note p { margin: 0 0 3px; font-size: 10.5px; color: #d0d0d0; line-height: 1.5; }
 .re-note p:last-child { margin-bottom: 0; }
 
 .re-rows { display: flex; flex-direction: column; }
 .re-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: clamp(7px, 1.4vh, 11px) 0; border-bottom: 1px solid rgba(255,255,255,.14); font: 500 14px/1.3 'Inter', sans-serif; color: #d0d0d0; }
-.re-row-k small { display: block; font-size: 11.5px; color: #9a9a9a; margin-top: 2px; }
+.re-row-k small { display: block; font-size: 10px; color: #9a9a9a; margin-top: 2px; }
 .re-row-v { font-weight: 700; color: #fff; white-space: nowrap; }
 .re-row-v.is-credit { color: #4ade80; }
 
@@ -134,10 +136,10 @@ body.skin-contado .rv-wrap {
 .re-total-row .re-row-k { font: 700 14px/1 'Inter', sans-serif; color: #fff; text-transform: uppercase; letter-spacing: .04em; }
 .re-total-row .re-row-v { font: 400 26px/1 'Bebas Neue', 'Inter', sans-serif; color: #e2231a; letter-spacing: .01em; }
 
-.re-foot { font-size: 11.5px; color: #8a8a8a; line-height: 1.55; margin-top: clamp(12px, 2.5vh, 22px); }
+.re-foot { font-size: 10px; color: #8a8a8a; line-height: 1.55; margin-top: clamp(12px, 2.5vh, 22px); }
 
 @media (max-width: 480px) {
-  .re-wordmark { font-size: 25px; }
-  .re-total { font-size: clamp(32px, 11vh, 40px); }
-  .re-total-row .re-row-v { font-size: 22px; }
+  .re-wordmark { font-size: 23px; }
+  .re-total { font-size: clamp(30px, 11vh, 38px); }
+  .re-total-row .re-row-v { font-size: 20px; }
 }
