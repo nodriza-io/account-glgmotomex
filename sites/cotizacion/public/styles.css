@@ -93,7 +93,11 @@ body.skin-banregio .glg-tab.active { background: #ff6a00; }
 .calc-desc-hint.warn { color: #c0392b; font-weight: 600; }
 .bbva-card { background: #f4f5f7; border-radius: 6px; padding: 30px 28px; }
 .bbva-cuota { font-size: clamp(30px, 9vw, 40px); font-weight: 800; color: #121212; letter-spacing: -.5px; }
-.bbva-cuota-label { font-size: 16px; color: #121212; margin-bottom: 22px; }
+.bbva-cuota-label { font-size: 16px; color: #121212; }
+/* La mensualidad de BBVA no es fija: baja con los intereses y sube al renovar
+   el seguro anual. Esta línea aclara qué número es el grande. */
+.bbva-cuota-nota { font-size: 12.5px; color: #6b7280; line-height: 1.45; margin: 4px 0 22px; }
+.bbva-cuota-nota:empty { margin: 0 0 22px; }
 .bbva-costs-head { padding: 16px 0 8px; color: #1464a5; font-size: 16px; font-weight: 700; border-top: 1px solid #dfe2e6; }
 .bbva-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; font-size: 14.5px; color: #333; }
 .bbva-row small { color: #6b7280; font-size: 12px; }

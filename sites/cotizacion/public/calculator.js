@@ -162,7 +162,9 @@ const Calc = (function () {
     const bank = BANKS[state.banco];
     const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
     const pr = $('f_precio'); if (pr) pr.value = fmtNum.format(Math.max(0, state.precio - (state.descuento || 0))); // precio con descuento
-    set('o_cuota', state.banco === 'banregio' ? fmtMXN.format(r.cuota) : fmtMXN0.format(r.cuota));
+    // BBVA se muestra con centavos: la mensualidad se compara contra el PDF del banco.
+    const conCentavos = state.banco === 'banregio' || r.modelo === 'bbva';
+    set('o_cuota', conCentavos ? fmtMXN.format(r.cuota) : fmtMXN0.format(r.cuota));
     set('o_tasa', fmtPct(r.tasa));
     set('o_engPct', `(${Math.round(state.enganchePct)}%)`);
     set('o_enganche', fmtMXN.format(r.enganche));
@@ -173,7 +175,23 @@ const Calc = (function () {
     set('o_seguro2', fmtMXN.format(r.seguroVida));
     set('o_inicial', fmtMXN.format(r.pagoInicial));
     set('o_total', fmtMXN.format(r.totalPagar));
+    if (r.modelo === 'bbva') renderBBVA(r);
     return r;
+  }
+
+  // Salidas propias del skin BBVA (los otros skins no tienen estos ids y `set`
+  // los ignora). La mensualidad varía mes a mes, así que hay que decir cuál es
+  // el número grande y hasta dónde baja.
+  function renderBBVA(r) {
+    const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+    const renov = (r.primasSeguro || 1) - 1;
+    set('o_cuotaNota', `1er pago. Baja cada mes hasta ${fmtMXN.format(r.cuotaMin)} porque el IVA se cobra solo sobre los intereses` +
+      (renov > 0 ? `, y sube al renovar el seguro (mes ${Array.from({ length: renov }, (_, k) => (k + 1) * 12 + 1).join(', ')}).` : '.'));
+    set('o_seguroNota', renov > 0 ? `prima anual · ${r.primasSeguro} primas en el plazo` : 'prima anual');
+    set('o_cxaPct', `(${fmtPct(BANKS.bbva.cxa)} + IVA, de contado)`);
+    set('o_mtf', fmtMXN.format(r.principal));
+    set('o_cuotasLabel', `Suma de las ${state.plazo} mensualidades`);
+    set('o_totalCuotas', fmtMXN.format(r.totalCuotas));
   }
 
   // Modo contado: sin banco/tasa/plazo. Total = precio neto de descuento − retoma.

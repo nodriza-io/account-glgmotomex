@@ -39,7 +39,7 @@ al instante con las tasas del banco elegido.
 
 Las tasas, seguros y plazos se editan en **`public/data.js`**.
 
-## Fórmula (sistema francés)
+## Fórmula — Santander y Banregio (sistema francés)
 
 ```
 enganche      = precio × enganche%
@@ -50,6 +50,35 @@ principal     = financiar + seguro + seguroVida
 cuota mensual = principal × i / (1 − (1+i)^−n)   con i = tasaAnual/12, n = plazo
 total a pagar = cuota × n + pago inicial
 ```
+
+## Fórmula — BBVA (modelo propio del banco)
+
+BBVA **no** usa la fórmula de arriba. Validado contra la cotización real
+**No. 54288845** (Meteor 350, $107,990, 20%, 36m): reproduce el pago mensual y
+el total con 0.03% de desviación. Vive en `engine.js → calcularBBVA`.
+
+```
+i             = tasaAnual / 360 × 30.4375   (actual/360; NO tasaAnual/12)
+financiar     = precio − enganche
+MTF           = financiar + seguroDaños + seguroVida   ("Monto Total a Financiar")
+CxA           = MTF × cxa_banco × 1.16      (con IVA, de contado, no se financia)
+pago inicial  = enganche + CxA
+
+Tres créditos paralelos que se pagan juntos:
+  base_auto   = PMT(i, plazo, financiar)
+  base_daños  = PMT(i, 12, seguroDaños)     ← prima ANUAL, se renueva en m13/25/37
+  base_vida   = PMT(i, plazo, seguroVida)
+
+cuota_mes     = base_auto + base_daños + base_vida + 16% × intereses_del_mes
+```
+
+Consecuencias: la mensualidad **no es fija** (baja con los intereses, sube al
+renovar el seguro), a 36 meses se pagan **3 primas de daños**, y el IVA se cobra
+**solo sobre intereses**, nunca sobre capital.
+
+No se replica el *pago irregular* de arranque (los días entre la disposición y
+el primer corte): depende de la fecha real de disposición. En la cotización de
+referencia son $655.57 sobre $162,751.88.
 
 ## ✅ Confirmado con GLG (jul 2026)
 

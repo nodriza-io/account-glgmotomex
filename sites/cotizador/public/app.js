@@ -187,14 +187,28 @@ function render(sim) {
   const precioLista = Number(sim.precioLista) || sim.precio;
   const conDescuento = descuento > 0;
 
+  // BBVA arma la cotización distinto (seguro de daños ANUAL renovable, IVA sobre
+  // los intereses, comisión de contado con IVA). El Site 1 lo marca con
+  // `modeloCalculo`; aquí solo cambian los rótulos y el orden del desglose.
+  const esBBVA = sim.modeloCalculo === 'bbva';
+  const renov = esBBVA ? (sim.primasSeguro || 1) - 1 : 0;
+
   const rows = [];
   if (sim.precio) rows.push(row('Precio del vehículo', money(conDescuento ? precioLista : sim.precio)));
   if (conDescuento) rows.push(row('Descuento', `<span class="rv-desc">−${money(descuento)}</span>`));
   if (sim.enganche != null) rows.push(row('Enganche', money(sim.enganche), `${sim.enganchePct}% del precio`));
-  if (financiar != null) rows.push(row('Monto a financiar', money(financiar)));
-  if (sim.cxa != null) rows.push(row('Comisión por apertura', money(sim.cxa)));
-  if (sim.seguro != null) rows.push(row('Seguro', money(sim.seguro)));
-  if (sim.seguroVida != null) rows.push(row('Seguro de vida y desempleo', money(sim.seguroVida)));
+  if (financiar != null) rows.push(row(esBBVA ? 'Financiamiento del vehículo' : 'Monto a financiar', money(financiar)));
+  if (esBBVA) {
+    if (sim.seguro != null) rows.push(row('Seguro de daños', money(sim.seguro), renov > 0 ? `prima anual · ${sim.primasSeguro} primas en el plazo` : 'prima anual'));
+    if (sim.seguroVida != null) rows.push(row('Seguro de vida y desempleo', money(sim.seguroVida)));
+    if (sim.montoFinanciado != null) rows.push(row('Monto total a financiar', money(sim.montoFinanciado)));
+    if (sim.cxa != null) rows.push(row('Comisión por apertura', money(sim.cxa), 'se paga de contado, no se financia'));
+    if (sim.totalCuotas != null) rows.push(row(`Suma de las ${sim.plazo} mensualidades`, money(sim.totalCuotas)));
+  } else {
+    if (sim.cxa != null) rows.push(row('Comisión por apertura', money(sim.cxa)));
+    if (sim.seguro != null) rows.push(row('Seguro', money(sim.seguro)));
+    if (sim.seguroVida != null) rows.push(row('Seguro de vida y desempleo', money(sim.seguroVida)));
+  }
 
   // Disclaimer de vehículo de retoma (parte de pago), si el asesor lo marcó en el Site 1.
   const ret = sim.retoma;
@@ -232,9 +246,10 @@ function render(sim) {
 
     <div class="rv-hero${notes.length ? ' rv-hero-2' : ''}">
       <div class="rv-hero-main">
-        <div class="rv-hero-label">Cuota mensual</div>
+        <div class="rv-hero-label">${esBBVA ? 'Pago mensual con IVA' : 'Cuota mensual'}</div>
         <div class="rv-cuota" style="color:${t.color}">${money(sim.cuota)}</div>
-        <div class="rv-hero-sub">Tasa ${pct(sim.tasa)} anual · ${escHtml(String(sim.plazo))} meses</div>
+        <div class="rv-hero-sub">Tasa ${pct(sim.tasa)} anual${esBBVA ? ' sin IVA' : ''} · ${escHtml(String(sim.plazo))} meses</div>
+        ${sim.cuotaVaria && sim.cuotaMin != null ? `<div class="rv-hero-sub">1er pago · va bajando hasta ${money(sim.cuotaMin)}${renov > 0 ? ' y sube al renovar el seguro anual' : ''}</div>` : ''}
       </div>
       ${notes.length ? `<div class="rv-hero-note">${notaInner}</div>` : ''}
     </div>
@@ -248,7 +263,7 @@ function render(sim) {
 
     ${retomaHtml}
 
-    <p class="rv-note">Simulación informativa con ${escHtml(sim.bancoName)}. Los seguros se financian dentro de la cuota; el pago inicial (enganche + comisión) no se financia. Sujeto a aprobación de crédito.</p>
+    <p class="rv-note">Simulación informativa con ${escHtml(sim.bancoName)}. Los seguros se financian dentro de la cuota; el pago inicial (enganche + comisión) no se financia. ${esBBVA ? 'La mensualidad varía: el IVA se cobra solo sobre los intereses y el seguro de daños es anual, se renueva cada 12 meses. No incluye el pago irregular de arranque. ' : ''}Sujeto a aprobación de crédito.</p>
   `;
 }
 

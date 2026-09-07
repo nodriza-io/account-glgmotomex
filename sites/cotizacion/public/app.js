@@ -657,6 +657,14 @@ async function guardarCotizacion(r, st) {
       tasa: r.tasa, enganchePct: Math.round(st.enganchePct), engancheMode: st.engancheMode, enganche: r.enganche, financiar: r.financiar,
       plazo: st.plazo, cxa: r.cxaMonto, seguro: r.seguro, seguroVida: r.seguroVida,
       pagoInicial: r.pagoInicial, cuota: r.cuota, total: r.totalPagar,
+      // BBVA: la mensualidad no es fija (IVA sobre intereses + seguro anual que
+      // se renueva). El Site 2 necesita saberlo para no vender `cuota` como si
+      // fuera constante. En los otros bancos estos campos van `undefined` y
+      // JSON.stringify los omite.
+      modeloCalculo: r.modelo, cuotaVaria: r.cuotaVaria,
+      cuotaMin: r.cuotaMin, cuotaMax: r.cuotaMax,
+      montoFinanciado: r.modelo === 'bbva' ? r.principal : undefined,
+      totalCuotas: r.totalCuotas, primasSeguro: r.primasSeguro,
     });
   const customFields = { simulacionCredito: JSON.stringify(sim) };
   try {

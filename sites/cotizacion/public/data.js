@@ -12,7 +12,10 @@
  *    cilindradas[350|450|650]:
  *      plazos       -> Plazos (meses) disponibles
  *      minEng/maxEng-> Rango de enganche permitido (%)
- *      seguro       -> Seguro (monto fijo $)
+ *      seguro       -> Seguro de daños ($).
+ *                      Santander/Banregio: monto fijo, se financia una vez.
+ *                      BBVA: es la prima ANUAL con IVA y se RENUEVA cada 12
+ *                      meses (a 36 meses se pagan 3 primas). Ver engine.js.
  *      seguroVida   -> Seguro de vida y desempleo (monto fijo $)
  *      tiers        -> Tasa anual según tramo de enganche.
  *                      Se aplica la MEJOR tasa cuyo minEng <= enganche del cliente.
@@ -26,8 +29,14 @@
  *   - Seguros: se financian dentro de la cuota.
  *   - Crédito Go: deshabilitado (sin tabla todavía).
  *
+ *  ⚠️ BBVA (sep 2026): el modelo del banco NO es el genérico. La CxA se cobra
+ *  sobre el monto total financiado + IVA, el seguro de daños es una prima anual
+ *  que se renueva, y hay IVA sobre los intereses. Todo eso vive en engine.js
+ *  (`calcularBBVA`), validado contra la cotización 54288845.
+ *
  *  PENDIENTE:
  *   - Lista real de modelos (nombre + precio + cilindrada) -> GLG la envía. Ver MODELOS abajo.
+ *   - Primas ANUALES de daños de BBVA para 450cc y 650cc (hoy son el valor viejo).
  */
 
 const BANKS = {
@@ -42,12 +51,18 @@ const BANKS = {
     },
   },
 
+  // BBVA: `seguro` es la PRIMA ANUAL de daños con IVA, no un monto único.
+  // 350cc = 11,421.33 sale de la cotización real 54288845 (Meteor 350 Aurora
+  // Black, $107,990). 450/650 siguen con el valor viejo del Excel y NO están
+  // confirmados como prima anual — GLG debe cargar las primas reales (lo más
+  // limpio es la columna "Seguro ($)" del Google Sheet, que pisa esto sin
+  // redeploy: ver bankmatrix.js).
   bbva: {
     name: 'BBVA',
     enabled: true,
     cxa: 0.03,
     cilindradas: {
-      350: { plazos: [12, 24, 36, 48, 60], minEng: 20, maxEng: 60, seguro: 9500,  seguroVida: 5000, tiers: [{ minEng: 40, rate: 0.1349 }, { minEng: 35, rate: 0.1549 }, { minEng: 20, rate: 0.1799 }] },
+      350: { plazos: [12, 24, 36, 48, 60], minEng: 20, maxEng: 60, seguro: 11421.33, seguroVida: 5000, tiers: [{ minEng: 40, rate: 0.1349 }, { minEng: 35, rate: 0.1549 }, { minEng: 20, rate: 0.1799 }] },
       450: { plazos: [12, 24, 36, 48, 60], minEng: 20, maxEng: 60, seguro: 14500, seguroVida: 5000, tiers: [{ minEng: 40, rate: 0.1349 }, { minEng: 35, rate: 0.1549 }, { minEng: 20, rate: 0.1799 }] },
       650: { plazos: [12, 24, 36, 48, 60], minEng: 20, maxEng: 60, seguro: 16500, seguroVida: 5000, tiers: [{ minEng: 40, rate: 0.1349 }, { minEng: 35, rate: 0.1549 }, { minEng: 20, rate: 0.1799 }] },
     },
