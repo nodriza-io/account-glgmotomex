@@ -162,9 +162,8 @@ const Calc = (function () {
     const bank = BANKS[state.banco];
     const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
     const pr = $('f_precio'); if (pr) pr.value = fmtNum.format(Math.max(0, state.precio - (state.descuento || 0))); // precio con descuento
-    // BBVA se muestra con centavos: la mensualidad se compara contra el PDF del banco.
-    const conCentavos = state.banco === 'banregio' || r.modelo === 'bbva';
-    set('o_cuota', conCentavos ? fmtMXN.format(r.cuota) : fmtMXN0.format(r.cuota));
+    // Con centavos: la mensualidad se compara contra la cotización del banco.
+    set('o_cuota', fmtMXN.format(r.cuota));
     set('o_tasa', fmtPct(r.tasa));
     set('o_engPct', `(${Math.round(state.enganchePct)}%)`);
     set('o_enganche', fmtMXN.format(r.enganche));
@@ -175,20 +174,26 @@ const Calc = (function () {
     set('o_seguro2', fmtMXN.format(r.seguroVida));
     set('o_inicial', fmtMXN.format(r.pagoInicial));
     set('o_total', fmtMXN.format(r.totalPagar));
-    if (r.modelo === 'bbva') renderBBVA(r);
+    renderDetalle(r, bank);
     return r;
   }
 
-  // Salidas propias del skin BBVA (los otros skins no tienen estos ids y `set`
-  // los ignora). La mensualidad varía mes a mes, así que hay que decir cuál es
-  // el número grande y hasta dónde baja.
-  function renderBBVA(r) {
+  // Salidas del desglose detallado. La mensualidad varía mes a mes (IVA sobre
+  // intereses + renovación del seguro), así que hay que decir cuál es el número
+  // grande y hasta dónde baja.
+  function renderDetalle(r, bank) {
     const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
     const renov = (r.primasSeguro || 1) - 1;
-    set('o_cuotaNota', `1er pago. Baja cada mes hasta ${fmtMXN.format(r.cuotaMin)} porque el IVA se cobra solo sobre los intereses` +
-      (renov > 0 ? `, y sube al renovar el seguro (mes ${Array.from({ length: renov }, (_, k) => (k + 1) * 12 + 1).join(', ')}).` : '.'));
+    const meses = Array.from({ length: renov }, (_, k) => (k + 1) * 12 + 1).join(', ');
+    if (r.cuotaVaria) {
+      set('o_cuotaNota', `1er pago. Baja cada mes hasta ${fmtMXN.format(r.cuotaMin)}` +
+        (r.ivaPct > 0 ? ' porque el IVA se cobra solo sobre los intereses' : '') +
+        (renov > 0 ? `, y sube al renovar el seguro (mes ${meses}).` : '.'));
+    } else {
+      set('o_cuotaNota', 'Cuota fija durante todo el plazo.');
+    }
     set('o_seguroNota', renov > 0 ? `prima anual · ${r.primasSeguro} primas en el plazo` : 'prima anual');
-    set('o_cxaPct', `(${fmtPct(BANKS.bbva.cxa)} + IVA, de contado)`);
+    set('o_cxaPct', `(${fmtPct(bank.cxa)}${r.ivaPct > 0 ? ' + IVA' : ''}, de contado)`);
     set('o_mtf', fmtMXN.format(r.principal));
     set('o_cuotasLabel', `Suma de las ${state.plazo} mensualidades`);
     set('o_totalCuotas', fmtMXN.format(r.totalCuotas));

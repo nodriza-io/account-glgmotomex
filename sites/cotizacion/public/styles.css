@@ -94,10 +94,11 @@ body.skin-banregio .glg-tab.active { background: #ff6a00; }
 .bbva-card { background: #f4f5f7; border-radius: 6px; padding: 30px 28px; }
 .bbva-cuota { font-size: clamp(28px, 9vw, 38px); font-weight: 800; color: #121212; letter-spacing: -.5px; }
 .bbva-cuota-label { font-size: 14px; color: #121212; }
-/* La mensualidad de BBVA no es fija: baja con los intereses y sube al renovar
-   el seguro anual. Esta línea aclara qué número es el grande. */
-.bbva-cuota-nota { font-size: 10.5px; color: #6b7280; line-height: 1.45; margin: 4px 0 22px; }
-.bbva-cuota-nota:empty { margin: 0 0 22px; }
+/* La mensualidad no es fija: baja con los intereses (el IVA se cobra solo sobre
+   ellos) y sube al renovar el seguro anual. Esta línea aclara qué número es el
+   grande. La usan los tres skins. */
+.calc-cuota-nota { font-size: 10.5px; color: #6b7280; line-height: 1.45; margin: 4px 0 22px; }
+.calc-cuota-nota:empty { margin: 0 0 22px; }
 .bbva-costs-head { padding: 16px 0 8px; color: #1464a5; font-size: 14px; font-weight: 700; border-top: 1px solid #dfe2e6; }
 .bbva-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; font-size: 12.5px; color: #333; }
 .bbva-row small { color: #6b7280; font-size: 10px; }
@@ -130,7 +131,7 @@ body.skin-banregio .glg-tab.active { background: #ff6a00; }
 .stdr-btn:hover { background: #cc0000; }
 .stdr-card { background: #fff; border: 1px solid #eee; border-radius: 14px; box-shadow: 0 12px 30px rgba(0,0,0,.06); padding: 28px 26px; }
 .stdr-card-label { font-size: 13px; color: #666; }
-.stdr-cuota { font-size: clamp(30px, 10vw, 42px); font-weight: 800; color: #ec0000; letter-spacing: -.5px; margin: 4px 0 20px; }
+.stdr-cuota { font-size: clamp(30px, 10vw, 42px); font-weight: 800; color: #ec0000; letter-spacing: -.5px; margin: 4px 0 2px; }
 .stdr-rows { border-top: 1px solid #eee; padding-top: 10px; }
 .stdr-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; font-size: 12.5px; color: #444; }
 .stdr-row small { color: #999; font-size: 10px; }

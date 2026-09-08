@@ -8,42 +8,27 @@
  *   Salidas:    o_cuota, o_tasa, o_engPct, o_enganche, o_financiar,
  *               o_cxaPct, o_cxa, o_seguro1, o_seguro2, o_inicial, o_total
  *               (contado usa además o_ctPrecio, o_ctRetomaRow, o_ctRetoma)
- *               (BBVA usa además o_cuotaNota, o_seguroNota, o_mtf,
- *                o_cuotasLabel, o_totalCuotas — ver `breakdownRowsBBVA`)
+ *               o_cuotaNota, o_seguroNota, o_mtf, o_cuotasLabel, o_totalCuotas
  */
-
-// Filas del desglose reutilizables (varían solo por clases de estilo)
-function breakdownRows(cls) {
-  return `
-    <div class="${cls}-row"><span>Tasa anual fija</span><span id="o_tasa">0%</span></div>
-    <div class="${cls}-row"><span>Enganche <small id="o_engPct"></small></span><span id="o_enganche">$0</span></div>
-    <div class="${cls}-row"><span>Costo a financiar</span><span id="o_financiar">$0</span></div>
-    <div class="${cls}-row"><span>Comisión por apertura <small id="o_cxaPct"></small></span><span id="o_cxa">$0</span></div>
-    <div class="${cls}-row"><span>Seguro</span><span id="o_seguro1">$0</span></div>
-    <div class="${cls}-row"><span>Seguro de vida y desempleo</span><span id="o_seguro2">$0</span></div>
-    <div class="${cls}-row ${cls}-row-strong"><span>Pago inicial total</span><span id="o_inicial">$0</span></div>
-    <div class="${cls}-row ${cls}-row-total"><span>Importe total a pagar</span><span id="o_total">$0</span></div>`;
-}
 
 /**
- * Desglose propio de BBVA. El banco no arma la cotización como un crédito
- * único: financia vehículo + seguro de daños (prima ANUAL, se renueva) +
- * seguro de vida, cobra IVA sobre los intereses de cada mes y liquida la
- * comisión por apertura de contado. Por eso las filas y los rótulos difieren
- * de los otros bancos. Ver el bloque BBVA de engine.js.
+ * Filas del desglose, iguales para los tres bancos (varían solo las clases de
+ * estilo). Reflejan el modelo real: se financia vehículo + seguro de daños +
+ * seguro de vida, y la comisión por apertura se paga de contado sobre ese
+ * total. Ver `calcularCredito` en engine.js.
  */
-function breakdownRowsBBVA() {
+function breakdownRows(cls) {
   return `
-    <div class="bbva-row"><span>Tasa anual fija <small>sin IVA</small></span><span id="o_tasa">0%</span></div>
-    <div class="bbva-row"><span>Enganche <small id="o_engPct"></small></span><span id="o_enganche">$0</span></div>
-    <div class="bbva-row"><span>Financiamiento del vehículo</span><span id="o_financiar">$0</span></div>
-    <div class="bbva-row"><span>Seguro de daños <small id="o_seguroNota"></small></span><span id="o_seguro1">$0</span></div>
-    <div class="bbva-row"><span>Seguro de vida y desempleo</span><span id="o_seguro2">$0</span></div>
-    <div class="bbva-row bbva-row-strong"><span>Monto total a financiar</span><span id="o_mtf">$0</span></div>
-    <div class="bbva-row"><span>Comisión por apertura <small id="o_cxaPct"></small></span><span id="o_cxa">$0</span></div>
-    <div class="bbva-row bbva-row-strong"><span>Pago inicial total <small>enganche + comisión</small></span><span id="o_inicial">$0</span></div>
-    <div class="bbva-row"><span id="o_cuotasLabel">Suma de las mensualidades</span><span id="o_totalCuotas">$0</span></div>
-    <div class="bbva-row bbva-row-total"><span>Importe total a pagar</span><span id="o_total">$0</span></div>`;
+    <div class="${cls}-row"><span>Tasa anual fija <small>sin IVA</small></span><span id="o_tasa">0%</span></div>
+    <div class="${cls}-row"><span>Enganche <small id="o_engPct"></small></span><span id="o_enganche">$0</span></div>
+    <div class="${cls}-row"><span>Financiamiento del vehículo</span><span id="o_financiar">$0</span></div>
+    <div class="${cls}-row"><span>Seguro de daños <small id="o_seguroNota"></small></span><span id="o_seguro1">$0</span></div>
+    <div class="${cls}-row"><span>Seguro de vida y desempleo</span><span id="o_seguro2">$0</span></div>
+    <div class="${cls}-row ${cls}-row-strong"><span>Monto total a financiar</span><span id="o_mtf">$0</span></div>
+    <div class="${cls}-row"><span>Comisión por apertura <small id="o_cxaPct"></small></span><span id="o_cxa">$0</span></div>
+    <div class="${cls}-row ${cls}-row-strong"><span>Pago inicial total <small>enganche + comisión</small></span><span id="o_inicial">$0</span></div>
+    <div class="${cls}-row"><span id="o_cuotasLabel">Suma de las mensualidades</span><span id="o_totalCuotas">$0</span></div>
+    <div class="${cls}-row ${cls}-row-total"><span>Importe total a pagar</span><span id="o_total">$0</span></div>`;
 }
 
 // Campo de descuento (compartido por los 3 skins). Vive dentro de la calculadora,
@@ -101,10 +86,10 @@ const SKINS = {
         <aside class="bbva-card">
           <div class="bbva-cuota" id="o_cuota">$0</div>
           <div class="bbva-cuota-label">Pago mensual con IVA</div>
-          <div class="bbva-cuota-nota" id="o_cuotaNota"></div>
+          <div class="calc-cuota-nota" id="o_cuotaNota"></div>
           <div class="bbva-costs">
             <div class="bbva-costs-head"><span>Tasas y costos</span></div>
-            <div class="bbva-costs-body">${breakdownRowsBBVA()}</div>
+            <div class="bbva-costs-body">${breakdownRows('bbva')}</div>
           </div>
           <p class="bbva-card-note"><span class="bbva-i">i</span> Valores aproximados. No incluye el pago irregular de arranque (los días entre la disposición y el primer corte). Las condiciones finales dependen de la aprobación del banco.</p>
         </aside>
@@ -130,8 +115,9 @@ const SKINS = {
           <button id="f_guardar" class="stdr-btn">Guardar en la propuesta</button>
         </div>
         <aside class="stdr-card">
-          <div class="stdr-card-label">Tu cuota mensual</div>
+          <div class="stdr-card-label">Pago mensual con IVA</div>
           <div class="stdr-cuota" id="o_cuota">$0</div>
+          <div class="calc-cuota-nota" id="o_cuotaNota"></div>
           <div class="stdr-rows">${breakdownRows('stdr')}</div>
           <p class="stdr-note">Cotización informativa sujeta a aprobación.</p>
         </aside>
@@ -157,8 +143,9 @@ const SKINS = {
           <button id="f_guardar" class="bnr-btn">Guardar cotización</button>
         </div>
         <aside class="bnr-card">
-          <div class="bnr-pago-label">Pago de</div>
+          <div class="bnr-pago-label">Pago mensual con IVA</div>
           <div class="bnr-cuota" id="o_cuota">$0.00</div>
+          <div class="calc-cuota-nota" id="o_cuotaNota"></div>
           <h3 class="bnr-resumen">Resumen</h3>
           ${breakdownRows('bnr')}
         </aside>

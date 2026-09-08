@@ -12,10 +12,9 @@
  *    cilindradas[350|450|650]:
  *      plazos       -> Plazos (meses) disponibles
  *      minEng/maxEng-> Rango de enganche permitido (%)
- *      seguro       -> Seguro de daños ($).
- *                      Santander/Banregio: monto fijo, se financia una vez.
- *                      BBVA: es la prima ANUAL con IVA y se RENUEVA cada 12
- *                      meses (a 36 meses se pagan 3 primas). Ver engine.js.
+ *      seguro       -> Seguro de daños ($). Es la prima ANUAL con IVA: se
+ *                      RENUEVA cada 12 meses (a 36 meses se pagan 3 primas),
+ *                      salvo que el banco tenga `modelo.seguroAnual: false`.
  *      seguroVida   -> Seguro de vida y desempleo (monto fijo $)
  *      tiers        -> Tramos por enganche. Se aplica el de mayor minEng que el
  *                      cliente alcance. Cada tramo lleva su `rate` y, si viene
@@ -33,21 +32,45 @@
  *   - Seguros: se financian dentro de la cuota.
  *   - Crédito Go: deshabilitado (sin tabla todavía).
  *
- *  ⚠️ BBVA (sep 2026): el modelo del banco NO es el genérico. La CxA se cobra
- *  sobre el monto total financiado + IVA, el seguro de daños es una prima anual
- *  que se renueva, y hay IVA sobre los intereses. Todo eso vive en engine.js
- *  (`calcularBBVA`), validado contra la cotización 54288845.
+ *  ⚠️ MODELO DE CRÉDITO (sep 2026): los tres bancos usan el modelo deducido de
+ *  la cotización real de BBVA — CxA sobre el monto total financiado + IVA,
+ *  seguro de daños anual renovable, e IVA sobre los intereses. Vive en
+ *  engine.js (`calcularCredito`) y se parametriza en `MODELO_BANCO`, acá abajo.
  *
  *  PENDIENTE:
  *   - Lista real de modelos (nombre + precio + cilindrada) -> GLG la envía. Ver MODELOS abajo.
  *   - Primas ANUALES de daños de BBVA para 450cc y 650cc (hoy son el valor viejo).
+ *   - Cotización real de Santander y de Banregio para validar que el modelo de
+ *     BBVA aplica igual. Hoy se les aplica por decisión de GLG, sin respaldo.
+ *   - Confirmar si los seguros de Santander/Banregio son primas ANUALES: hoy se
+ *     renuevan cada 12 meses igual que los de BBVA, y nadie lo verificó.
  */
+
+/**
+ * Reglas del modelo de crédito, por banco. Las consume `calcularCredito` en
+ * engine.js (ver ahí el detalle de cada campo).
+ *
+ *   ✅ BBVA — validado contra la cotización real No. 54288845.
+ *   ⚠️ Santander y Banregio — se les aplicó el MISMO modelo por decisión de GLG
+ *      (sep 2026), pero SIN una cotización del banco que lo respalde. Cada
+ *      regla es independiente: puede que uno cobre IVA sobre intereses pero su
+ *      seguro no sea anual renovable, o que cuente 30/360 en vez de actual/360.
+ *      Cuando lleguen las cotizaciones, se ajusta acá y no en el motor.
+ */
+const MODELO_BANCO = {
+  iva: 0.16,          // IVA sobre los intereses de cada mes
+  seguroAnual: true,  // la prima de daños se renueva cada 12 meses
+  cxaSobreTotal: true,// comisión sobre vehículo + los dos seguros
+  cxaConIva: true,    // la comisión lleva IVA
+  diasMes: 30.4375,   // actual/360 sobre el calendario real (30 = tasa/12)
+};
 
 const BANKS = {
   santander: {
     name: 'Santander',
     enabled: true,
     cxa: 0.03,
+    modelo: MODELO_BANCO, // ⚠️ sin cotización de respaldo — ver MODELO_BANCO
     cilindradas: {
       350: { plazos: [12, 24, 36, 48, 60], minEng: 20, maxEng: 60, seguro: 7500,  seguroVida: 1800, tiers: [{ minEng: 20, rate: 0.1799 }] },
       450: { plazos: [12, 24, 36, 48, 60], minEng: 20, maxEng: 60, seguro: 9500,  seguroVida: 1800, tiers: [{ minEng: 20, rate: 0.1799 }] },
@@ -65,6 +88,7 @@ const BANKS = {
     name: 'BBVA',
     enabled: true,
     cxa: 0.03,
+    modelo: MODELO_BANCO, // ✅ validado contra la cotización 54288845
     cilindradas: {
       350: { plazos: [12, 24, 36, 48, 60], minEng: 20, maxEng: 60, seguro: 11421.33, seguroVida: 5000, tiers: [{ minEng: 40, rate: 0.1349 }, { minEng: 35, rate: 0.1549 }, { minEng: 20, rate: 0.1799 }] },
       450: { plazos: [12, 24, 36, 48, 60], minEng: 20, maxEng: 60, seguro: 14500, seguroVida: 5000, tiers: [{ minEng: 40, rate: 0.1349 }, { minEng: 35, rate: 0.1549 }, { minEng: 20, rate: 0.1799 }] },
@@ -76,6 +100,7 @@ const BANKS = {
     name: 'Banregio',
     enabled: true,
     cxa: 0.02,
+    modelo: MODELO_BANCO, // ⚠️ sin cotización de respaldo — ver MODELO_BANCO
     cilindradas: {
       350: { plazos: [12, 24, 36, 48],     minEng: 15, maxEng: 60, seguro: 8500,  seguroVida: 2600, tiers: [{ minEng: 30, rate: 0.1599 }, { minEng: 15, rate: 0.1649 }] },
       450: { plazos: [12, 24, 36, 48, 60], minEng: 10, maxEng: 60, seguro: 9500,  seguroVida: 3000, tiers: [{ minEng: 30, rate: 0.1275 }, { minEng: 10, rate: 0.1349 }] },
