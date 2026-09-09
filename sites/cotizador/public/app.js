@@ -100,6 +100,50 @@ function fitToHostPage(dark) {
   if (dark && page && page.children.length === 1) page.style.backgroundColor = '#000';
 }
 
+// ---------------- Ajuste al alto disponible (nunca scroll) ----------------
+// La hoja de la propuesta mide 792x612 y el visor no debe generar scroll nunca,
+// tenga o no vehículo de retoma, nota especial o desglose detallado.
+//
+// El grueso lo resuelve el CSS: los espaciados son clamp(min, Nvh, max), así que
+// el bloque se comprime solo cuando el panel es más bajo. Esto de acá es la red
+// de seguridad para el contenido que el CSS no puede prever (una nota de varias
+// líneas, un nombre de modelo larguísimo): si aun comprimido no entra, se escala
+// la hoja completa desde el centro. Escalar en bloque conserva las proporciones
+// del diseño; apretar tipografías una por una, no.
+//
+// FIT_MIN es el piso: por debajo el texto dejaría de leerse. Con el peor caso
+// real (desglose detallado + nota + retoma) el factor no baja de ~0.95, así que
+// el piso es holgura, no un límite que se toque.
+const FIT_MIN = 0.7;
+// Colchón: la hoja mide 612px de alto, pero se ajusta contra 610. Esos 2px
+// evitan que el bloque quede pegado al borde exacto, donde cualquier diferencia
+// de redondeo entre navegadores (o un borde de 1px del panel anfitrión) ya se
+// ve como un desborde. Es holgura, no corrección de un cálculo.
+const FIT_SLACK = 2;
+function fitToViewport() {
+  const wrap = document.querySelector('.rv-wrap');
+  const view = $('view');
+  if (!wrap || !view) return;
+
+  view.style.transform = ''; // medir siempre sin escalar
+  wrap.style.overflowY = '';
+  const cs = getComputedStyle(wrap);
+  const disponible = wrap.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - FIT_SLACK;
+  const alto = view.scrollHeight;
+  if (!disponible || !alto || alto <= disponible) return;
+
+  const exacto = disponible / alto;
+  view.style.transform = `scale(${Math.max(FIT_MIN, exacto)})`;
+  // Si ni al mínimo entra, el escalado ya no alcanza: ahí vale más devolver el
+  // scroll que recortar texto en silencio. En la página de la propuesta
+  // (792x612) esto no pasa; es el borde de un panel muy angosto con una nota
+  // de varios párrafos.
+  if (exacto < FIT_MIN) wrap.style.overflowY = 'auto';
+}
+// El alto disponible cambia cuando el host redimensiona el iframe (y cuando
+// `fitToHostPage` lo estira a la página completa), así que hay que re-medir.
+window.addEventListener('resize', fitToViewport);
+
 // ---------------- Render: pago de contado (sin banco/tasa/plazo) ----------------
 // Sin banco no hay marca de banco que mostrar: se usa la identidad real de
 // Royal Enfield (negro + rojo, royalenfieldco.com) en toda la hoja en vez del
@@ -165,6 +209,15 @@ function renderContado(sim) {
 
     <p class="re-foot">Cotización de contado con Royal Enfield GLG Motomex. Precio sujeto a disponibilidad del modelo.</p>
   `;
+  ajustarAlto();
+}
+
+// Mide después de pintar y otra vez cuando terminan de cargar las fuentes: Inter
+// y Bebas Neue cambian el alto del bloque y sin el segundo pase el factor se
+// calcularía sobre la tipografía de respaldo.
+function ajustarAlto() {
+  fitToViewport();
+  try { document.fonts.ready.then(fitToViewport); } catch (e) { /* noop */ }
 }
 
 // ---------------- Render (solo lectura, con marca del banco) ----------------
@@ -266,6 +319,7 @@ function render(sim) {
 
     <p class="rv-note">Simulación informativa con ${escHtml(sim.bancoName)}. Los seguros se financian dentro de la cuota; el pago inicial (enganche + comisión) no se financia. ${sim.cuotaVaria ? 'La mensualidad varía: el IVA se cobra solo sobre los intereses y el seguro de daños es anual, se renueva cada 12 meses. No incluye el pago irregular de arranque. ' : ''}Sujeto a aprobación de crédito.</p>
   `;
+  ajustarAlto();
 }
 
 function showError(msg) {
